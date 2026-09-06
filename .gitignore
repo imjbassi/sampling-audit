@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+venv/
+.venv/
+env/
+
+# Raw simulation trajectories are reproducible from src/alanine.py and are
+# large relative to the rest of the repo; results CSVs and figures (the
+# actual scientific outputs) are kept.
+data/alanine/*.dcd
+
+# Editor/OS cruft
+.DS_Store
+*.swp

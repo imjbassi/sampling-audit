@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+results/*.csv
+results/*.log
+data/
+figures/*.png
+figures/*.pdf
+.venv/
