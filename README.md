@@ -57,11 +57,16 @@ src/
   cluster.py      clustering + chance-corrected recovery metrics
   sweep.py        the experiment driver
   analyze.py      bootstrap CIs over seeds; Spearman budget-trend tests
-  figures.py      all publication figures
-  alanine.py      real-system validation (alanine dipeptide, optional)
+  figures.py         all publication figures
+  figures_alanine.py alanine-specific panels (Ramachandran ground truth;
+                     TICA effective-lag mechanism)
+  alanine.py         real-system validation (alanine dipeptide, optional)
 paper/
+  manuscript.md   the full manuscript
   outline.md      section-by-section plan mapped to figures
   threats.md      threats to validity and how each is addressed
+results/
+  NOTE.md         inventory: which sweep file is authoritative, and why
 ```
 
 ## Reproducing
@@ -82,6 +87,8 @@ python src/sweep.py --potential prinz1d --seeds 20 \
 
 # figures
 python src/figures.py --results results/sweep.csv
+python src/figures.py --results results/sweep_prinz.csv \
+  --outdir figures_prinz --potential prinz1d
 ```
 
 `--resume` skips conditions already written, so a long run can be interrupted
@@ -91,10 +98,27 @@ and restarted safely.
 
 ```bash
 pip install -r requirements-md.txt
+
+# 100 ns; ~1 h on a GPU, overnight on CPU
 python src/alanine.py simulate --ns 100
+
 python src/alanine.py sweep --dcd data/alanine/traj_seed0.dcd \
-                            --top data/alanine_dipeptide.pdb
+                            --top data/alanine_dipeptide.pdb \
+                            --budgets 100 250 500 1000 2000 4000 \
+                                      8000 16000 32000 64000 \
+                            --out results/alanine_sweep_100ns.csv
+
+# figures. --dcd is optional and only adds the Ramachandran ground-truth panel
+python src/figures_alanine.py --results results/alanine_sweep_100ns.csv \
+                              --dcd data/alanine/traj_seed0.dcd \
+                              --top data/alanine_dipeptide.pdb
 ```
+
+The 100 ns length is not arbitrary. An initial 5 ns pilot visited the rarest
+basin (alpha_L/C7ax) inconsistently at the sampling budgets under study, which
+confounded the alanine result with a basin-visitation deficit instead of
+isolating the sample-size effect. The pilot sweeps are kept in `results/` for
+provenance only; see `results/NOTE.md`.
 
 ## Statistical conventions
 
@@ -112,5 +136,17 @@ python src/alanine.py sweep --dcd data/alanine/traj_seed0.dcd \
 
 ## Status
 
-Toy-system pipeline implemented and running. Alanine dipeptide validation is
-scaffolded but not yet run. See `paper/outline.md` for what remains.
+Both synthetic sweeps and the 100 ns alanine dipeptide validation are complete,
+along with the TICA lag and embedding-dimension ablations. The manuscript is in
+`paper/manuscript.md`. The single highest-value remaining experiment is a second
+independent 100 ns alanine seed; see the limitations section of the manuscript.
+
+## Citing
+
+See `CITATION.cff`. A preprint is in preparation; this README will be updated
+with the DOI once it is posted.
+
+## License
+
+Code is released under the MIT License (`LICENSE`). The manuscript text and
+figures in `paper/` and `figures*/` are released under CC BY 4.0.

@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+title: >-
+  How Many Metastable States Did You Actually Find? Sampling Budget as a
+  Confound in Dimensionality-Reduction Analyses of Molecular Simulation
+message: If you use this software or its results, please cite it as below.
+type: software
+authors:
+  - given-names: Jaiveer
+    family-names: Bassi
+    email: jaiveerbassi@yahoo.com
+    affiliation: Grand Canyon University
+repository-code: https://github.com/imjbassi/sampling-audit
+abstract: >-
+  A controlled audit of whether the number of metastable states reported by
+  PCA, TICA, and VAE projections of molecular simulation data is a property of
+  the free energy landscape or partly an artifact of the sampling budget.
+  Across two synthetic potentials with basin counts fixed by construction and a
+  100 ns all-atom simulation of alanine dipeptide, reported state count
+  increases monotonically with sampling budget while the ground-truth landscape
+  does not change. The effect survives a coverage-matched control that holds
+  landscape exploration fixed and varies only sample size.
+keywords:
+  - molecular dynamics
+  - dimensionality reduction
+  - Markov state models
+  - model selection
+  - metastable states
+  - sampling
+license: MIT

@@ -12,3 +12,6 @@ data/alanine/*.dcd
 # Editor/OS cruft
 .DS_Store
 *.swp
+
+# one-shot patch backups
+*.bak

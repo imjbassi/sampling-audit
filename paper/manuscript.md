@@ -87,11 +87,12 @@ localize where the resulting error comes from: across all nine method-system
 pairs tested, recovery under the standard pipeline declines from its peak to
 the largest budget tested, but the size of the decline is explained by a
 single mechanism rather than left unexplained. PCA and VAE decline sharply
-(29-84%) regardless of how faithful their projection is; TICA declines only
+(43-84%) regardless of how faithful their projection is; TICA declines only
 as much as its warm-up phase -- the minimum data needed to produce a stable
 projection at all -- leaves room for the ordinary selection-driven
-degradation to operate, ranging from 9% where warm-up consumes most of the
-tested budget to 53% where it does not.
+degradation to operate, ranging from 12% where warm-up consumes the entire
+tested range, through 37% where two budget doublings remain after it, to 53%
+where most of the range remains.
 
 We do not claim that any published metastable-state count is wrong. The claim
 is that such counts are, by default, incompletely reported: a number without
@@ -101,11 +102,12 @@ typically treat it as carrying.
 ## 2. Related work
 
 **Comparative benchmarks of dimensionality reduction for molecular systems.**
-Recent work has directly compared PCA, TICA, and VAE projections, together with
-downstream clustering choices, on protein folding trajectories and on Markov
-state model construction, finding that the choice of method changes the
-resulting free energy surface and the states it appears to reveal. This
-literature establishes that method choice matters at fixed data. The present
+Recent work has directly compared PCA, TICA, and VAE projections [3, 4, 5, 7,
+8, 9], together with downstream clustering choices, on protein folding
+trajectories and on Markov state model construction [11, 12, 13], finding that
+the choice of method changes the resulting free energy surface and the states
+it appears to reveal; Glielmo et al. [10] survey the field. This literature
+establishes that method choice matters at fixed data. The present
 work holds method fixed and varies the data, which is the complementary axis:
 we ask not which method is best at a given budget, but whether the answer any
 method gives depends on the budget itself. We are not aware of prior work that
@@ -115,7 +117,7 @@ this effect.
 **Undersampling and non-ergodicity in molecular dynamics.** It is well
 established and frequently acknowledged that molecular dynamics trajectories
 are undersampled relative to the timescales of interest, and that this
-undersampling can bias downstream analysis. This is typically stated as a
+undersampling can bias downstream analysis [14]. This is typically stated as a
 caveat rather than measured as a quantitative confound with a known
 ground-truth comparison. Our contribution is to make the undersampling
 question tractable by constructing systems where the true answer is known,
@@ -124,7 +126,8 @@ alone, since it persists when landscape coverage is matched across budgets.
 
 **Model selection under misspecification.** The behavior of BIC and related
 criteria when the fitted model class does not match the true data-generating
-process is well studied in the statistics literature; in particular, the
+process is well studied in the statistics literature [15, 18, 19]; in
+particular, the
 likelihood gain from additional mixture components can grow with sample size
 under misspecification even when the penalty term does not compensate
 proportionally. Our results are consistent with this mechanism contributing to
@@ -149,19 +152,19 @@ Three systems are used, chosen so that ground truth is available independently
 of any method under audit.
 
 **Müller-Brown potential** (2 latent dimensions, 3 basins). A standard
-three-well potential with minima located by gradient descent from known
+three-well potential [1] with minima located by gradient descent from known
 starting points; basin membership is assigned by steepest-descent quenching to
 the nearest minimum, never by a fitted clustering model. Figure 1 shows the
 potential surface, the resulting ground-truth basins, and a representative
 sampled trajectory.
 
 **Prinz potential** (1 latent dimension, 4 basins). A standard four-well
-potential from the Markov state model literature; basin boundaries are the
+potential from the Markov state model literature [2]; basin boundaries are the
 potential's barrier tops, located once on a fine grid at construction time.
 
 **Alanine dipeptide** (all-atom, 3 basins). A 100 ns Langevin dynamics
-simulation in implicit solvent (OpenMM, amber14/GBn2, 2 fs timestep, 1 ps save
-interval, 100,000 saved frames). Ground truth is the standard three-region
+simulation in implicit solvent (OpenMM [24], amber14 [25] with GBn2 [26], 2 fs
+timestep, 1 ps save interval, 100,000 saved frames). Ground truth is the standard three-region
 partition of the backbone (phi, psi) dihedral space -- a chemical definition
 entirely independent of dimensionality reduction or clustering. Observed
 features are pairwise distances between heavy atoms, deliberately excluding
@@ -185,8 +188,9 @@ results in Sections 4-6: the underlying landscape is identical in every panel.
 ### 3.2 Sampling conditions
 
 Two modes are compared at each of several sampling budgets (250 to 32,000
-frames for the synthetic potentials; 100 to 4,000 frames for alanine
-dipeptide, scaled to the shorter available trajectory):
+frames for the synthetic potentials; 100 to 64,000 frames for alanine
+dipeptide, whose 100,000-frame trajectory supports a wider sweep than either
+synthetic system):
 
 - **short**: a trajectory run to produce exactly the target number of saved
   frames. This is the condition an analyst with a fixed compute budget
@@ -202,21 +206,22 @@ response to sample size (would appear in both).
 
 ### 3.3 Methods under audit
 
-**PCA**, **TICA** (solved as an explicit generalized eigenproblem so its
-regularization is auditable rather than a library default), and a **VAE**
-(fixed architecture, trained for a fixed number of gradient steps rather than a
-fixed number of epochs, so that larger datasets are not silently given more
-optimization). t-SNE is reported only in an appendix figure: its cluster count
-is governed substantially by its perplexity hyperparameter rather than by data
-structure, so treating its output as a state-count estimate would not be
-sound.
+**PCA** [3], **TICA** [4, 5] (solved as an explicit generalized eigenproblem
+so its regularization is auditable rather than a library default), and a
+**VAE** [6, 7] (fixed architecture, trained for a fixed number of gradient
+steps rather than a fixed number of epochs, so that larger datasets are not
+silently given more optimization). t-SNE [22] is reported only in an appendix
+figure: its cluster count is governed substantially by its perplexity
+hyperparameter rather than by data structure [23], so treating its output as a
+state-count estimate would not be sound.
 
 ### 3.4 State-count selection
 
 Five criteria for choosing the number of mixture components in the projected
-space are compared on identical embeddings: BIC, AIC, the integrated completed
-likelihood (ICL, which adds an entropy penalty on component overlap to BIC),
-silhouette score, and an elbow heuristic on k-means inertia. This comparison is
+space are compared on identical embeddings: BIC [15], AIC [16], the integrated
+completed likelihood (ICL [17], which adds an entropy penalty on component
+overlap to BIC), silhouette score [20], and an elbow heuristic on k-means
+inertia. This comparison is
 included because the most direct objection to the central finding is that it
 is a known property of BIC's penalty behavior under model misspecification
 rather than a property of the dimensionality reduction step; the five-criterion
@@ -224,7 +229,7 @@ comparison is designed to answer that objection with evidence.
 
 ### 3.5 Metrics and statistics
 
-**Recovery** is measured by the adjusted Rand index (ARI) between the
+**Recovery** is measured by the adjusted Rand index (ARI) [21] between the
 recovered clustering and ground-truth basin membership, both at the
 criterion-selected state count and, as a control, at the true state count
 supplied directly ("oracle k"). ARI is chance-corrected, so it does not reward
@@ -508,28 +513,62 @@ is (compare their oracle-k column, which ranges from 0.42 to 0.90). Their
 selected-k recovery is dominated by the state-count selection failure, not by
 projection quality.
 
-**TICA's decline tracks how long its warm-up phase lasts, not the system.**
-TICA requires a minimum number of lagged pairs to produce a stable projection
-at all; at small budgets on every system it starts near zero (Müller-Brown:
-0.09 at n=250; Prinz: 0.00 at n=250-500; alanine: 0.00 at n=100). Once past
-this threshold, its subsequent decline depends on how much of the tested
-budget range remains after warm-up resolves. On Prinz, warm-up consumes most
-of the range and the subsequent decline is mild (12%). On Müller-Brown,
-warm-up resolves almost immediately, leaving most of the range for the
-ordinary selection-driven decline to operate, and the result is sharp (53%,
-comparable to PCA and VAE on the same system). On alanine dipeptide under the
-100 ns trajectory, warm-up resolves faster still -- by n=250, because
-coverage-matched subsampling draws uniformly from a much longer, better-mixed
-reference trajectory than a short one, so even a small subsample yields
-well-distributed lagged pairs -- and the resulting decline (37%) sits between
-the two extremes, consistent with most of the budget range operating in the
-selection-driven regime. This is consistent with two mechanisms operating on
-the same curve rather than one: an estimator-stability effect that dominates
-at small budgets and a selection-driven degradation that dominates once the
-estimator has stabilized, exactly as characterized via the oracle-k contrast
-in Section 6. That the warm-up threshold itself shifts with how the reference
-trajectory was generated, not only with lag and system identity, is a further
-prediction of the mechanism that this comparison confirms.
+**TICA's decline tracks how much budget remains after its warm-up, not the
+system.** TICA requires a minimum number of usable lagged pairs to produce a
+stable projection at all; at small budgets on every system it starts near zero
+(Müller-Brown: 0.09 at n=250; Prinz: 0.00 at n=250-500; alanine: 0.00 at
+n=100). The right diagnostic for when warm-up has finished is the oracle-k
+column, which measures projection quality with the selection step removed.
+Reading warm-up off that column, the size of the subsequent decline is a
+simple function of how many budget doublings the sweep has left once warm-up
+completes:
+
+| system | warm-up completes at | doublings remaining in sweep | decline |
+|---|---|---|---|
+| Prinz | not before n=32,000 (end of range) | 0 | 12% |
+| Alanine dipeptide | n=16,000 | 2 | 37% |
+| Müller-Brown | n≈1,000-4,000 | 3-5 | 53% |
+
+Prinz spends its entire range warming up and barely declines; Müller-Brown
+finishes early and declines as sharply as PCA and VAE on the same system;
+alanine dipeptide falls between them because its warm-up ends two doublings
+before the sweep does. This is two mechanisms operating on one curve rather
+than one: an estimator-stability effect that dominates at small budgets, and a
+selection-driven degradation that dominates once the estimator has stabilized,
+exactly as characterized via the oracle-k contrast in Section 6.
+
+**Why alanine's warm-up completes so late, and a caution it implies.** That
+alanine warms up at n=16,000 is at first surprising, since its reference
+trajectory is the longest in the paper. The explanation is a direct
+consequence of the lag mechanism established in Section 6, and it is specific
+to the `subsample` condition. TICA's lag is specified in frames of the data it
+is handed, but uniform thinning to a budget of n frames from a 100,000-frame
+trajectory imposes a stride of 100,000/n, so a nominal lag of 10 frames
+corresponds to an *effective* physical lag of 10 x 100,000/n picoseconds. The
+effective lag therefore shrinks as the budget grows, and TICA's projection
+quality tracks it closely:
+
+| n_frames | 100 | 1,000 | 8,000 | 16,000 | 64,000 |
+|---|---|---|---|---|---|
+| effective lag | 10 ns | 1 ns | 125 ps | 62 ps | 16 ps |
+| oracle-k ARI | 0.02 | 0.26 | 0.25 | 0.93 | 0.96 |
+
+Oracle-k recovery is flat at roughly 0.25 across six consecutive budgets and
+then rises nearly fourfold between n=8,000 and n=16,000 -- precisely where the
+effective lag crosses below about 100 ps, the timescale of the backbone
+dihedral transitions that separate these basins. Above that lag the
+time-lagged covariance is estimated between frames that are already
+decorrelated, and TICA has no slow direction left to find. The same figures in
+`short` mode, where the stride is always 1 and the effective lag is fixed at
+10 ps, show no such discontinuity: oracle-k rises smoothly from 0.15 to 0.96.
+
+The practical caution follows directly, and it is not one we set out to test:
+thinning a trajectory before applying TICA rescales the lag along with the
+data. An analyst who subsamples aggressively and keeps the lag parameter fixed
+is silently lengthening the effective lag, and can push a well-sampled
+trajectory back into the warm-up regime. This is an independent confirmation
+of the lag ablation of Section 6 on real molecular dynamics, arrived at
+through the thinning stride rather than through the lag parameter itself.
 
 All nine method-system pairs decline from peak to the largest budget tested,
 and the size of the decline is explained by a specific, testable mechanism
@@ -544,9 +583,10 @@ the real-molecule replication and what is and is not comparable between the
 two settings.
 
 **Simulation.** A single 100 ns trajectory of alanine dipeptide (ACE-ALA-NME)
-was run in implicit solvent (OpenMM, amber14/GBn2 force field, Langevin middle
-integrator, 2 fs timestep, 300 K, 1 ps save interval, one simulation seed),
-producing 100,000 saved frames. An initial 5 ns pilot run was discarded after
+was run in implicit solvent (OpenMM [24], amber14 [25] with the GBn2 implicit
+solvent model [26], Langevin middle integrator [27], 2 fs timestep, 300 K, 1 ps
+save interval, one simulation seed), producing 100,000 saved frames. Dihedrals
+and heavy-atom distances were computed with MDTraj [28]. An initial 5 ns pilot run was discarded after
 it showed the rarest of the three basins (alpha_L/C7ax) was not consistently
 visited at the sampling budgets under study; 100 ns was chosen because it
 visits all three basins at every tested budget under coverage-matched
@@ -652,25 +692,8 @@ single highest-value remaining experiment.
 
 Ordered by how much they constrain the paper's claims, most binding first.
 
-**Silhouette and elbow-gap criteria are shown to be unreliable but not fully
-explained.** Both return near-constant output regardless of budget, and this
-paper documents that fact and its consequence (an illusion of stability that
-happens to coincide with the correct answer on some systems and not others)
-without establishing why these particular criteria are so insensitive to this
-particular kind of data. This is noted as an open question rather than
-resolved.
-
-**All three systems tested have a small number of well-separated basins (3-4).**
-Whether the effect's magnitude changes for landscapes with many close or
-overlapping metastable states is untested and is a natural extension.
-
-**Alanine dipeptide, while a real molecule, is small and fast-mixing.** The
-result should not be extrapolated to slower-folding or larger proteins without
-further validation; the paper's claims about real systems are scoped to this
-system and are not evidence about protein folding timescales generally.
-
 **A second 100 ns seed is the single highest-value remaining experiment.**
-Unlike the 5 ns comparison above, a second independent 100 ns simulation would
+Unlike the 5 ns comparison below, a second independent 100 ns simulation would
 test seed-independence on data that does not also carry a coverage confound,
 and would upgrade the current single-seed 100 ns result to the same standard
 of evidence as the synthetic systems. This is not yet done and is the paper's
@@ -691,6 +714,23 @@ under-sampled result was. This comparison is retained as a preliminary,
 favorable indicator rather than as confirmation, and is superseded by the
 single-seed 100 ns result as the paper's primary alanine dipeptide evidence.
 
+**Silhouette and elbow-gap criteria are shown to be unreliable but not fully
+explained.** Both return near-constant output regardless of budget, and this
+paper documents that fact and its consequence (an illusion of stability that
+happens to coincide with the correct answer on some systems and not others)
+without establishing why these particular criteria are so insensitive to this
+particular kind of data. This is noted as an open question rather than
+resolved.
+
+**All three systems tested have a small number of well-separated basins (3-4).**
+Whether the effect's magnitude changes for landscapes with many close or
+overlapping metastable states is untested and is a natural extension.
+
+**Alanine dipeptide, while a real molecule, is small and fast-mixing.** The
+result should not be extrapolated to slower-folding or larger proteins without
+further validation; the paper's claims about real systems are scoped to this
+system and are not evidence about protein folding timescales generally.
+
 **Two selection-criterion claims rest on limited excursions.** ICL's zero
 ceiling-hit rate is a strong result but was tested only up to a search ceiling
 of kmax = 15; whether ICL would eventually saturate at a still-larger budget is
@@ -702,9 +742,12 @@ independent ground truth beyond the ARI figures already reported.
 proposed in Section 6 is now directly tested via a lag/lagged-pair ablation
 (300 conditions, 10 seeds) rather than only inferred from the oracle-k
 contrast, and the ablation confirms both qualitative predictions of the
-mechanism. This ablation was run on the Prinz potential only; whether the same
-lag-dependence holds quantitatively on Müller-Brown and on alanine dipeptide
-is untested and would further strengthen the claim's generality.
+mechanism. The lag parameter itself was swept on the Prinz potential only.
+Section 6.3 supplies a second, independent test on alanine dipeptide by
+varying the effective lag through the subsampling stride rather than through
+the parameter, and the crossover falls where the mechanism predicts; a direct
+parameter sweep on Müller-Brown and on alanine remains untested and would
+further strengthen the claim's generality.
 
 **The embedding-dimension ablation is complete and confirms the main results
 are dimension-robust, with two secondary findings worth reporting.** Re-running
@@ -730,3 +773,115 @@ paper's localization claim than the two-dimensional case alone, since it shows
 the selection step's relative cost growing precisely as the projection itself
 improves. This ablation was run on Prinz only; whether the same pattern holds
 on Müller-Brown and alanine dipeptide is untested.
+
+## 10. References
+
+[1] K. Müller and L. D. Brown. Location of saddle points and minimum energy
+paths by a constrained simplex optimization procedure. *Theoretica Chimica
+Acta*, 53(1):75-93, 1979.
+
+[2] J.-H. Prinz, H. Wu, M. Sarich, B. Keller, M. Senne, M. Held, J. D.
+Chodera, C. Schütte, and F. Noé. Markov models of molecular kinetics:
+Generation and validation. *The Journal of Chemical Physics*,
+134(17):174105, 2011.
+
+[3] A. Amadei, A. B. M. Linssen, and H. J. C. Berendsen. Essential dynamics of
+proteins. *Proteins: Structure, Function, and Bioinformatics*,
+17(4):412-425, 1993.
+
+[4] G. Pérez-Hernández, F. Paul, T. Giorgino, G. De Fabritiis, and F. Noé.
+Identification of slow molecular order parameters for Markov model
+construction. *The Journal of Chemical Physics*, 139(1):015102, 2013.
+
+[5] C. R. Schwantes and V. S. Pande. Improvements in Markov state model
+construction reveal many non-native interactions in the folding of NTL9.
+*Journal of Chemical Theory and Computation*, 9(4):2000-2009, 2013.
+
+[6] D. P. Kingma and M. Welling. Auto-encoding variational Bayes. In
+*International Conference on Learning Representations (ICLR)*, 2014.
+
+[7] C. X. Hernández, H. K. Wayment-Steele, M. M. Sultan, B. E. Husic, and
+V. S. Pande. Variational encoding of complex dynamics. *Physical Review E*,
+97(6):062412, 2018.
+
+[8] C. Wehmeyer and F. Noé. Time-lagged autoencoders: Deep learning of slow
+collective variables for molecular kinetics. *The Journal of Chemical
+Physics*, 148(24):241703, 2018.
+
+[9] J. M. L. Ribeiro, P. Bravo, Y. Wang, and P. Tiwary. Reweighted autoencoded
+variational Bayes for enhanced sampling (RAVE). *The Journal of Chemical
+Physics*, 149(7):072301, 2018.
+
+[10] A. Glielmo, B. E. Husic, A. Rodriguez, C. Clementi, F. Noé, and
+A. Laio. Unsupervised learning methods for molecular simulation data.
+*Chemical Reviews*, 121(16):9722-9758, 2021.
+
+[11] B. E. Husic and V. S. Pande. Markov state models: From an art to a
+science. *Journal of the American Chemical Society*, 140(7):2386-2396, 2018.
+
+[12] J. D. Chodera and F. Noé. Markov state models of biomolecular
+conformational dynamics. *Current Opinion in Structural Biology*,
+25:135-144, 2014.
+
+[13] M. K. Scherer, B. Trendelkamp-Schroer, F. Paul, G. Pérez-Hernández,
+M. Hoffmann, N. Plattner, C. Wehmeyer, J.-H. Prinz, and F. Noé. PyEMMA 2: A
+software package for estimation, validation, and analysis of Markov models.
+*Journal of Chemical Theory and Computation*, 11(11):5525-5542, 2015.
+
+[14] A. Grossfield and D. M. Zuckerman. Quantifying uncertainty and sampling
+quality in biomolecular simulations. *Annual Reports in Computational
+Chemistry*, 5:23-48, 2009.
+
+[15] G. Schwarz. Estimating the dimension of a model. *The Annals of
+Statistics*, 6(2):461-464, 1978.
+
+[16] H. Akaike. A new look at the statistical model identification. *IEEE
+Transactions on Automatic Control*, 19(6):716-723, 1974.
+
+[17] C. Biernacki, G. Celeux, and G. Govaert. Assessing a mixture model for
+clustering with the integrated completed likelihood. *IEEE Transactions on
+Pattern Analysis and Machine Intelligence*, 22(7):719-725, 2000.
+
+[18] C. Keribin. Consistent estimation of the order of mixture models.
+*Sankhyā: The Indian Journal of Statistics, Series A*, 62(1):49-66, 2000.
+
+[19] M. Drton and M. Plummer. A Bayesian information criterion for singular
+models. *Journal of the Royal Statistical Society: Series B*,
+79(2):323-380, 2017.
+
+[20] P. J. Rousseeuw. Silhouettes: A graphical aid to the interpretation and
+validation of cluster analysis. *Journal of Computational and Applied
+Mathematics*, 20:53-65, 1987.
+
+[21] L. Hubert and P. Arabie. Comparing partitions. *Journal of
+Classification*, 2(1):193-218, 1985.
+
+[22] L. van der Maaten and G. Hinton. Visualizing data using t-SNE. *Journal
+of Machine Learning Research*, 9:2579-2605, 2008.
+
+[23] M. Wattenberg, F. Viégas, and I. Johnson. How to use t-SNE effectively.
+*Distill*, 2016.
+
+[24] P. Eastman, J. Swails, J. D. Chodera, R. T. McGibbon, Y. Zhao, K. A.
+Beauchamp, L.-P. Wang, A. C. Simmonett, M. P. Harrigan, C. D. Stern, R. P.
+Wiewiora, B. R. Brooks, and V. S. Pande. OpenMM 7: Rapid development of high
+performance algorithms for molecular dynamics. *PLoS Computational Biology*,
+13(7):e1005659, 2017.
+
+[25] J. A. Maier, C. Martinez, K. Kasavajhala, L. Wickstrom, K. E. Hauser, and
+C. Simmerling. ff14SB: Improving the accuracy of protein side chain and
+backbone parameters from ff99SB. *Journal of Chemical Theory and
+Computation*, 11(8):3696-3713, 2015.
+
+[26] H. Nguyen, D. R. Roe, and C. Simmerling. Improved generalized Born
+solvent model parameters for protein simulations. *Journal of Chemical Theory
+and Computation*, 9(4):2020-2034, 2013.
+
+[27] Z. Zhang, X. Liu, K. Yan, M. E. Tuckerman, and J. Liu. Unified efficient
+thermostat scheme for the canonical ensemble with holonomic or isokinetic
+constraints. *The Journal of Physical Chemistry A*, 123(28):6056-6079, 2019.
+
+[28] R. T. McGibbon, K. A. Beauchamp, M. P. Harrigan, C. Klein, J. M.
+Swails, C. X. Hernández, C. R. Schwantes, L.-P. Wang, T. J. Lane, and V. S.
+Pande. MDTraj: A modern open library for the analysis of molecular dynamics
+trajectories. *Biophysical Journal*, 109(8):1528-1532, 2015.

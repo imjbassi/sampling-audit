@@ -219,8 +219,33 @@ def fig4_criteria(df, outdir="figures",
     _save(fig, outdir, "fig4_criteria")
 
 
-def fig5_recovery(df, outdir="figures", criterion="bic"):
-    """Selected-k recovery vs oracle-k recovery: where the damage happens."""
+def fig5_recovery(df, outdir="figures", criterion="bic",
+                  drop_degenerate=True, min_basin_frac=None):
+    """
+    Selected-k recovery vs oracle-k recovery.
+
+    drop_degenerate : exclude conditions where fewer true basins were visited
+        than exist. In those conditions the ground-truth label vector is
+        constant, so a single-cluster solution scores ARI = 1.0 trivially and
+        the value is not interpretable. Budgets left with no valid replicates
+        are dropped entirely rather than plotted from a partial sample.
+
+    min_basin_frac : optionally also require the rarest true basin to hold at
+        least this fraction of frames. A basin at 0.3% occupancy passes the
+        k_visited test but cannot support a cluster.
+    """
+    n_before = len(df)
+    if drop_degenerate and "k_visited" in df.columns:
+        df = df[df["k_visited"] >= df["k_true"]]
+    if min_basin_frac is not None and "min_basin_frac" in df.columns:
+        df = df[df["min_basin_frac"] >= min_basin_frac]
+    n_dropped = n_before - len(df)
+
+    # drop budgets that lost all replicates, so no point is drawn from an
+    # empty or near-empty sample
+    keep = df.groupby(["mode", "n_frames"])["seed"].transform("count") >= 3
+    df = df[keep]
+
     modes = sorted(df["mode"].unique())
     fig, axes = plt.subplots(1, len(modes), figsize=(5.2 * len(modes), 3.5),
                              squeeze=False, sharey=True)
@@ -242,8 +267,15 @@ def fig5_recovery(df, outdir="figures", criterion="bic"):
         a.set_ylim(-0.05, 1.02)
     axes[0][0].set_ylabel("ARI vs ground-truth basins")
     axes[0][-1].legend(fontsize=7, ncol=2)
-    fig.suptitle("Recovery is limited by choosing k, not by the projection", y=1.03)
+
+    note = ("degenerate conditions excluded" if drop_degenerate
+            else "all conditions")
+    fig.suptitle("Recovery peaks at an intermediate budget, then declines",
+                 y=1.03)
+    fig.text(0.5, -0.04, f"{note}: {n_dropped} of {n_before} rows removed",
+             ha="center", fontsize=7, color="#555555")
     _save(fig, outdir, "fig5_recovery")
+    print(f"  [fig5] dropped {n_dropped}/{n_before} degenerate rows")
 
 
 def fig6_coverage(df, outdir="figures", criterion="bic"):
