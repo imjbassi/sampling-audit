@@ -62,7 +62,10 @@ src/
                      TICA effective-lag mechanism)
   alanine.py         real-system validation (alanine dipeptide, optional)
 paper/
-  manuscript.md   the full manuscript
+  manuscript.md   the full manuscript (markdown source)
+  main.tex        submission LaTeX, generated from manuscript.md
+  refs.bib        28 references, built from publisher metadata
+  tools/          one-way markdown -> LaTeX pipeline and its checks
   outline.md      section-by-section plan mapped to figures
   threats.md      threats to validity and how each is addressed
 results/
@@ -140,6 +143,20 @@ Both synthetic sweeps and the 100 ns alanine dipeptide validation are complete,
 along with the TICA lag and embedding-dimension ablations. The manuscript is in
 `paper/manuscript.md`. The single highest-value remaining experiment is a second
 independent 100 ns alanine seed; see the limitations section of the manuscript.
+
+## Building the paper
+
+```bash
+python paper/tools/build.py          # manuscript.md -> paper/main.tex, then check
+python paper/tools/build.py --bib    # also rebuild refs.bib from Crossref
+cd paper && pdflatex main && bibtex main && pdflatex main && pdflatex main
+```
+
+`build.py` converts, then verifies: every numeric token in the markdown must
+survive into the LaTeX, every `\cite` key must exist in `refs.bib`, every
+`\ref` must resolve, and every `\includegraphics` path must exist. The
+conversion is one-way -- once you begin editing `main.tex` directly, retire
+`manuscript.md` rather than editing both.
 
 ## Citing
 

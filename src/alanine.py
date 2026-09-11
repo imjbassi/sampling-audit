@@ -164,7 +164,7 @@ def ground_truth_states(traj):
 def run_sweep(dcd, top, budgets=(250, 500, 1000, 2000, 4000, 8000, 16000,
                                  32000, 64000),
               methods=("pca", "tica", "vae"), seeds=8, kmax=15,
-              out="results/alanine_sweep.csv"):
+              out="results/alanine_sweep.csv", resume=False):
     """
     Same audit, real molecule.
 
@@ -172,6 +172,12 @@ def run_sweep(dcd, top, budgets=(250, 500, 1000, 2000, 4000, 8000, 16000,
     is the coverage-matched (`subsample`) condition from the toy experiment.
     The `short` condition is obtained by taking contiguous leading blocks
     instead -- that mirrors an analyst who simply stopped the simulation early.
+
+    Results are appended in batches of 10 rather than written once at the end,
+    and `resume` skips conditions already present in `out`. The full grid is a
+    multi-hour run dominated by its largest budgets -- n=64,000 alone is most of
+    the wall clock -- so an all-or-nothing write loses far too much to a crash
+    near the end. This mirrors the same handling in sweep.py.
     """
     import pandas as pd
     from embed import get_embedder
@@ -184,6 +190,26 @@ def run_sweep(dcd, top, budgets=(250, 500, 1000, 2000, 4000, 8000, 16000,
     print(f"[alanine] {X_all.shape[0]} frames, {X_all.shape[1]} features, "
           f"{n_true} ground-truth basins")
 
+    os.makedirs(os.path.dirname(out) or ".", exist_ok=True)
+    done = set()
+    header_written = False
+    if os.path.exists(out) and resume:
+        prev = pd.read_csv(out)
+        cols = ["mode", "method", "n_frames", "seed"]
+        done = set(map(tuple, prev[cols].values))
+        header_written = True
+        print(f"[resume] {len(done)} conditions already complete")
+
+    def flush(rows):
+        nonlocal header_written
+        if not rows:
+            return []
+        pd.DataFrame(rows).to_csv(
+            out, mode="a" if header_written else "w",
+            header=not header_written, index=False)
+        header_written = True
+        return []
+
     rows = []
     for mode in ("short", "subsample"):
         for nf in budgets:
@@ -191,6 +217,8 @@ def run_sweep(dcd, top, budgets=(250, 500, 1000, 2000, 4000, 8000, 16000,
                 continue
             for method in methods:
                 for seed in range(seeds):
+                    if (mode, method, nf, seed) in done:
+                        continue
                     rng = np.random.default_rng(seed)
                     if mode == "subsample":
                         start = rng.integers(0, max(1, len(X_all) - nf))
@@ -223,9 +251,10 @@ def run_sweep(dcd, top, budgets=(250, 500, 1000, 2000, 4000, 8000, 16000,
                     print(f"  {mode:<9} {method:<5} n={nf:<6} s={seed} "
                           f"k_bic={row['k_bic']} ARI={row['ari_bic']:.3f}",
                           flush=True)
+                    if len(rows) >= 10:
+                        rows = flush(rows)
 
-    os.makedirs(os.path.dirname(out) or ".", exist_ok=True)
-    pd.DataFrame(rows).to_csv(out, index=False)
+    flush(rows)
     print(f"[alanine] wrote {out}")
     return out
 
@@ -248,6 +277,8 @@ if __name__ == "__main__":
                    help="override default budget list, e.g. --budgets 100 250 500 1000 2000 4000")
     a.add_argument("--out", default="results/alanine_sweep.csv",
                    help="output CSV path, e.g. results/alanine_sweep_seed1.csv")
+    a.add_argument("--resume", action="store_true",
+                   help="skip conditions already present in --out")
     args = ap.parse_args()
 
     if args.cmd == "simulate":
@@ -256,4 +287,4 @@ if __name__ == "__main__":
         default_small_budgets = [100, 250, 500, 1000, 2000, 4000]
         run_sweep(args.dcd, args.top, seeds=args.seeds,
                  budgets=args.budgets or default_small_budgets,
-                 out=args.out)
+                 out=args.out, resume=args.resume)
