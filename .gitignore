@@ -15,3 +15,10 @@ data/alanine/*.dcd
 
 # one-shot patch backups
 *.bak
+# LaTeX build products (main.pdf is committed, the rest is not)
+paper/*.aux
+paper/*.log
+paper/*.bbl
+paper/*.blg
+paper/*.out
+paper/tools/_body.*

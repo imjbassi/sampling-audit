@@ -60,13 +60,13 @@ TABLE_META = [
 FIGS = [
     ("anchor", "ref{fig:landscape} shows", "fig:landscape", "figures/fig1_landscape.pdf",
      "\\textwidth", "figure*",
-     "Ground truth for the M\\\"uller--Brown potential: (a) the energy surface "
+     "Ground truth for the Müller--Brown potential: (a) the energy surface "
      "with its three minima, (b) basin assignment by steepest-descent quenching, "
      "(c) one sampled trajectory coloured by true basin. Basin labels never come "
      "from a fitted model."),
     ("anchor", "ref{fig:embeddings} shows", "fig:embeddings",
      "figures/fig2_embedding_grid.pdf", "\\textwidth", "figure*",
-     "Embeddings of the M\\\"uller--Brown system across projection method (rows) "
+     "Embeddings of the Müller--Brown system across projection method (rows) "
      "and sampling budget (columns), coloured by true basin. The underlying "
      "landscape is identical in every panel; only the number of saved frames "
      "differs."),
@@ -117,9 +117,17 @@ def inline(s):
         holds.append(m.group(0))
         return f"\x00{len(holds)-1}\x00"
 
+    def hold_str(txt):
+        holds.append(txt)
+        return f"\x00{len(holds)-1}\x00"
+
     s = re.sub(r"\\(?:cite|ref)\{[^}]*\}", hold, s)
+    # These expand to math ($\approx$ and friends). They must be held, not
+    # inserted raw: the escaping pass below would otherwise escape the dollar
+    # signs they introduce and emit a literal "\$\approx\$".
     for a, b in UNI:
-        s = s.replace(a, b)
+        if a in s:
+            s = s.replace(a, hold_str(b))
     s = s.replace("\\", "\x01")
     for ch in "&%#_${}":
         s = s.replace(ch, "\\" + ch)
@@ -137,7 +145,11 @@ def make_table(rows, idx):
     head, body = rows[0], rows[1:]
     ncol = len(head)
     spec = "l" + "c" * (ncol - 1)
-    env = "table*" if ncol >= 5 else "table"
+    # Every table here carries either wide numeric cells (confidence intervals)
+    # or wide labels, and none fits a 3.4in column: the four-column warm-up
+    # table silently overflowed into the neighbouring column's body text when
+    # this was decided by column count.
+    env = "table*"
     out = [f"\\begin{{{env}}}[t]", "\\centering", "\\small",
            f"\\caption{{{cap}}}", f"\\label{{{label}}}",
            f"\\begin{{tabular}}{{{spec}}}", "\\toprule",
@@ -165,6 +177,8 @@ for spec in FIGS:
         pending_after_table.setdefault(spec[1], []).append(spec)
 
 in_abstract = False
+started = False          # have we reached the Abstract yet?
+deferred = []            # figure floats waiting for the paragraph to end
 while i < len(src):
     line = src[i]
 
@@ -189,6 +203,7 @@ while i < len(src):
         if t.lower() == "abstract":
             out.append("\\begin{abstract}")
             in_abstract = True
+            started = True
         else:
             if in_abstract:
                 out.append("\\end{abstract}")
@@ -197,6 +212,12 @@ while i < len(src):
         i += 1
         continue
     if line.startswith("### "):
+        # The line directly under the H1 is the paper's subtitle, not a
+        # section. It already appears inside \title, so emitting it here too
+        # produced a stray "0.1" subsection above the abstract.
+        if not started:
+            i += 1
+            continue
         out.append("\\subsection{%s}" %
                    inline(re.sub(r"^\d+\.\d+\s*", "", line[4:].strip())))
         i += 1
@@ -205,11 +226,51 @@ while i < len(src):
         i += 1
         continue
 
+    # bullet / numbered lists. Items may be separated by blank lines (the
+    # Recommendations are) and wrap onto indented continuation lines, so the
+    # list ends only when a blank line is followed by something that is
+    # neither a marker nor a continuation.
+    m = re.match(r"(\s*)(-|\d+\.)\s+(.*)", line)
+    if m and not line.startswith("|"):
+        env = "itemize" if m.group(2) == "-" else "enumerate"
+        items, j = [], i
+        while j < len(src):
+            ln = src[j]
+            mk = re.match(r"\s*(?:-|\d+\.)\s+(.*)", ln)
+            if mk:
+                items.append([mk.group(1)])
+            elif ln.startswith((" ", "\t")) and ln.strip():
+                items[-1].append(ln.strip())
+            elif not ln.strip():
+                k = j + 1
+                while k < len(src) and not src[k].strip():
+                    k += 1
+                if k < len(src) and (re.match(r"\s*(?:-|\d+\.)\s+", src[k])
+                                     or src[k].startswith((" ", "\t"))):
+                    j = k
+                    continue
+                break
+            else:
+                break
+            j += 1
+        out.append(f"\\begin{{{env}}}")
+        for it in items:
+            out.append("\\item " + inline(" ".join(it)))
+        out.append(f"\\end{{{env}}}")
+        i = j
+        continue
+
     out.append(inline(line))
+    # A float emitted in the middle of a paragraph splits that paragraph in
+    # the output, so hold it until the paragraph actually ends.
     for spec in FIGS:
         if spec[0] == "anchor" and spec[1] in line:
-            out.append("")
+            deferred.append(spec)
+    if not line.strip() and deferred:
+        for spec in deferred:
             out.append(figure(spec[2], spec[3], spec[4], spec[5], spec[6]))
+        out.append("")
+        deferred = []
     i += 1
 
 if in_abstract:
@@ -224,8 +285,21 @@ doc = "\n".join(out).strip() + "\n"
 doc, nq = re.subn(r'"([^"]+?)"', r"``\1''", doc, flags=re.S)
 
 # The prose spells the rank correlation as the word "rho". In a typeset paper
-# it should be the symbol. Never touch an existing \rho.
+# it should be the symbol. Never touch an existing \rho, and never touch the
+# inside of a \ref/\label/\cite argument -- the label tab:rho lives there, and
+# rewriting it produces \ref{tab:$\rho$}, which is a fatal TeX error rather
+# than a visible typo.
+_held = []
+
+
+def _hold_arg(m):
+    _held.append(m.group(0))
+    return f"\x02{len(_held)-1}\x02"
+
+
+doc = re.sub(r"\\(?:ref|label|cite)\{[^}]*\}", _hold_arg, doc)
 doc, nr = re.subn(r"(?<![\\\w])rho(?![\w])", r"$\\rho$", doc)
+doc = re.sub(r"\x02(\d+)\x02", lambda m: _held[int(m.group(1))], doc)
 
 io.open(OUT, "w", encoding="utf-8", newline="\n").write(doc)
 print(f"multi-line quotes fixed: {nq}   'rho' -> symbol: {nr}")

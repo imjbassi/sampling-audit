@@ -33,8 +33,6 @@ Grand Canyon University, Phoenix, Arizona, USA \\
 \begin{document}
 \maketitle
 
-\subsection{Sampling Budget as a Confound in Dimensionality-Reduction Analyses of Molecular Simulation}
-
 \begin{abstract}
 
 A common claim in the molecular simulation literature takes the form
@@ -189,15 +187,15 @@ of any method under audit.
 three-well potential \cite{muller1979} with minima located by gradient descent from known
 starting points; basin membership is assigned by steepest-descent quenching to
 the nearest minimum, never by a fitted clustering model. Figure~\ref{fig:landscape} shows the
+potential surface, the resulting ground-truth basins, and a representative
+sampled trajectory.
 
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/fig1_landscape.pdf}
-\caption{Ground truth for the M\``uller--Brown potential: (a) the energy surface with its three minima, (b) basin assignment by steepest-descent quenching, (c) one sampled trajectory coloured by true basin. Basin labels never come from a fitted model.}
+\caption{Ground truth for the Müller--Brown potential: (a) the energy surface with its three minima, (b) basin assignment by steepest-descent quenching, (c) one sampled trajectory coloured by true basin. Basin labels never come from a fitted model.}
 \label{fig:landscape}
 \end{figure*}
-potential surface, the resulting ground-truth basins, and a representative
-sampled trajectory.
 
 \textbf{Prinz potential} (1 latent dimension, 4 basins). A standard four-well
 potential from the Markov state model literature \cite{prinz2011}; basin boundaries are the
@@ -222,16 +220,16 @@ For the two synthetic potentials, the low-dimensional dynamics are lifted into
 isotropic noise, drawn once and held constant across every sampling condition,
 so that no difference between conditions is attributable to a changing
 observation model. Figure~\ref{fig:embeddings} shows the resulting embeddings across projection
+method and sampling budget on Müller-Brown, coloured by true basin, to
+illustrate the visual character of the confound before the quantitative
+results in Sections 4-6: the underlying landscape is identical in every panel.
 
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/fig2_embedding_grid.pdf}
-\caption{Embeddings of the M\''uller--Brown system across projection method (rows) and sampling budget (columns), coloured by true basin. The underlying landscape is identical in every panel; only the number of saved frames differs.}
+\caption{Embeddings of the Müller--Brown system across projection method (rows) and sampling budget (columns), coloured by true basin. The underlying landscape is identical in every panel; only the number of saved frames differs.}
 \label{fig:embeddings}
 \end{figure*}
-method and sampling budget on Müller-Brown, coloured by true basin, to
-illustrate the visual character of the confound before the quantitative
-results in Sections 4-6: the underlying landscape is identical in every panel.
 
 \subsection{Sampling conditions}
 
@@ -240,13 +238,10 @@ frames for the synthetic potentials; 100 to 64,000 frames for alanine
 dipeptide, whose 100,000-frame trajectory supports a wider sweep than either
 synthetic system):
 
-- \textbf{short}: a trajectory run to produce exactly the target number of saved
-  frames. This is the condition an analyst with a fixed compute budget
-  actually has, and it confounds two things: how much of the landscape was
-  explored, and how many points the selection criterion sees.
-- \textbf{subsample}: one long reference trajectory per seed, uniformly thinned to
-  the target budget. Landscape coverage is held approximately fixed by
-  construction across every budget; only the number of points varies.
+\begin{itemize}
+\item \textbf{short}: a trajectory run to produce exactly the target number of saved frames. This is the condition an analyst with a fixed compute budget actually has, and it confounds two things: how much of the landscape was explored, and how many points the selection criterion sees.
+\item \textbf{subsample}: one long reference trajectory per seed, uniformly thinned to the target budget. Landscape coverage is held approximately fixed by construction across every budget; only the number of points varies.
+\end{itemize}
 
 Comparing the two isolates whether an observed effect is due to incomplete
 exploration (would appear in \texttt{short} but not \texttt{subsample}) or to the estimator's
@@ -310,13 +305,13 @@ from 1.0--7.1 up to 12.5--14.9. At the largest budget every method on every
 system reports at least three times the true number of basins.
 
 The rank correlation between log sampling budget and BIC-selected state count
-is uniformly high and tightly bounded (Table~\ref{tab:$\rho$}):
+is uniformly high and tightly bounded (Table~\ref{tab:rho}):
 
 \begin{table*}[t]
 \centering
 \small
 \caption{Spearman rank correlation between log sampling budget and BIC-selected state count, for each system, sampling mode and projection method. Brackets are bootstrap 95\% confidence intervals over the 20 seeds. No interval approaches zero.}
-\label{tab:$\rho$}
+\label{tab:rho}
 \begin{tabular}{lcccc}
 \toprule
 \textbf{system} & \textbf{mode} & \textbf{PCA} & \textbf{TICA} & \textbf{VAE} \\
@@ -520,7 +515,7 @@ points varies.
 Coverage matching does not remove the effect. BIC budget correlations under
 \texttt{short} and \texttt{subsample} are statistically indistinguishable in every cell (Table~\ref{tab:coverage}):
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering
 \small
 \caption{The coverage-matched control. BIC budget correlations under genuinely short trajectories and under uniform thinning of one long reference trajectory. Intervals overlap in all six comparisons, so holding landscape coverage fixed does not remove the effect.}
@@ -537,7 +532,7 @@ Prinz & TICA & +0.97 [+0.97, +0.98] & +0.96 [+0.95, +0.97] \\
 Prinz & VAE & +0.93 [+0.92, +0.94] & +0.91 [+0.89, +0.93] \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{figures/fig6_coverage.pdf}
@@ -725,7 +720,7 @@ Reading warm-up off that column, the size of the subsequent decline is a
 simple function of how many budget doublings the sweep has left once warm-up
 completes (Table~\ref{tab:warmup}):
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering
 \small
 \caption{Why TICA's decline varies by system. Warm-up completion is read from the oracle-$k$ column; what remains of the sweep after it determines how much ordinary selection-driven degradation can occur.}
@@ -736,10 +731,10 @@ completes (Table~\ref{tab:warmup}):
 \midrule
 Prinz & not before n=32,000 (end of range) & 0 & 12\% \\
 Alanine dipeptide & n=16,000 & 2 & 37\% \\
-Müller-Brown & n\$\textbackslash{}approx\$1,000-4,000 & 3-5 & 53\% \\
+Müller-Brown & n$\approx$1,000-4,000 & 3-5 & 53\% \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 
 Prinz spends its entire range warming up and barely declines; Müller-Brown
 finishes early and declines as sharply as PCA and VAE on the same system;
@@ -891,42 +886,13 @@ single highest-value remaining experiment.
 
 \section{Recommendations}
 
-1. \textbf{Report the sampling budget alongside any claimed metastable state count.}
-   A state count without its budget is, by the evidence in this paper,
-   an incompletely specified quantity.
-
-2. **Do not report a state count from a single budget as a stable property of
-   the system.** Where feasible, report how the count changes with budget
-   (as in Table~\ref{tab:ninepairs}), or explicitly justify why the budget used is
-   believed to be past the point where this matters---which, per point 3,
-   requires checking rather than assuming.
-
-3. **Check the gap between recovery at the selected state count and at a
-   plausible alternative before trusting the selected count, rather than
-   assuming the selection step is reliable.** This paper's oracle-k comparison
-   is one way to do this when ground truth is known; in practice a domain
-   plausible-range check (does k = 3 versus k = 8 tell qualitatively different
-   biological stories?) serves a similar function.
-
-4. **Prefer ICL over BIC or AIC for this purpose, with the caveat that ICL is
-   not thereby accurate, only less prone to runaway inflation.** ICL never
-   reached the search ceiling in any of the twelve (system x mode x method)
-   conditions tested here, where BIC did so in up to 44\% of conditions and
-   AIC in up to 84\%. ICL's own reported count should still be treated as an
-   estimate to sanity-check, not a final answer.
-
-5. **Where TICA is used, check for evidence of a warm-up regime before
-   trusting its output at a given budget.** TICA's failure mode at small
-   budgets (near-zero recovery, not merely inaccurate recovery) is distinct
-   from PCA's and VAE's and is not fixed by any of the five selection criteria
-   tested; it requires enough usable lagged pairs (sampling budget minus lag)
-   at the chosen lag to produce a stable estimate. This is not only a plausible
-   diagnostic but a measured one: the lag ablation in Section 6 shows recovery
-   at fixed budget falling monotonically as lag increases, and the budget
-   needed to reach any given recovery level rising correspondingly with lag.
-   A practical check even without ground truth is whether the projection
-   changes substantially under a moderate change in lag; if it does, the
-   estimate at the current lag and budget should not yet be trusted.
+\begin{enumerate}
+\item \textbf{Report the sampling budget alongside any claimed metastable state count.} A state count without its budget is, by the evidence in this paper, an incompletely specified quantity.
+\item \textbf{Do not report a state count from a single budget as a stable property of the system.} Where feasible, report how the count changes with budget (as in Table~\ref{tab:ninepairs}), or explicitly justify why the budget used is believed to be past the point where this matters---which, per point 3, requires checking rather than assuming.
+\item \textbf{Check the gap between recovery at the selected state count and at a plausible alternative before trusting the selected count, rather than assuming the selection step is reliable.} This paper's oracle-k comparison is one way to do this when ground truth is known; in practice a domain plausible-range check (does k = 3 versus k = 8 tell qualitatively different biological stories?) serves a similar function.
+\item \textbf{Prefer ICL over BIC or AIC for this purpose, with the caveat that ICL is not thereby accurate, only less prone to runaway inflation.} ICL never reached the search ceiling in any of the twelve (system x mode x method) conditions tested here, where BIC did so in up to 44\% of conditions and AIC in up to 84\%. ICL's own reported count should still be treated as an estimate to sanity-check, not a final answer.
+\item \textbf{Where TICA is used, check for evidence of a warm-up regime before trusting its output at a given budget.} TICA's failure mode at small budgets (near-zero recovery, not merely inaccurate recovery) is distinct from PCA's and VAE's and is not fixed by any of the five selection criteria tested; it requires enough usable lagged pairs (sampling budget minus lag) at the chosen lag to produce a stable estimate. This is not only a plausible diagnostic but a measured one: the lag ablation in Section 6 shows recovery at fixed budget falling monotonically as lag increases, and the budget needed to reach any given recovery level rising correspondingly with lag. A practical check even without ground truth is whether the projection changes substantially under a moderate change in lag; if it does, the estimate at the current lag and budget should not yet be trusted.
+\end{enumerate}
 
 \section{Limitations}
 
