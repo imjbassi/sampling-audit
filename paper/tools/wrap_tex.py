@@ -23,17 +23,26 @@ PRE = r"""% Generated from paper/manuscript.md -- edit the markdown, then re-run
 \usepackage{amssymb}
 \usepackage[hidelinks]{hyperref}
 
+% ORCID badge next to the author name. orcidlink draws the official mark and
+% hyperlinks it; the fallback keeps the paper compilable on a TeX installation
+% that does not have the package, since a missing logo should not stop a build.
+\IfFileExists{orcidlink.sty}{\usepackage{orcidlink}}{%
+  \newcommand{\orcidlink}[1]{}%
+}
+
 \captionsetup{font=small,labelfont=bf}
 \setlength{\tabcolsep}{4pt}
+
+\newcommand{\ORCID}{0009-0006-3633-3220}
 
 \title{\textbf{How Many Metastable States Did You Actually Find?\\
 \large Sampling Budget as a Confound in Dimensionality-Reduction Analyses of
 Molecular Simulation}}
 
-\author{Jaiveer Bassi \\
-College of Science, Engineering, and Technology \\
-Grand Canyon University, Phoenix, Arizona, USA \\
-\texttt{jaiveerbassi@yahoo.com}}
+\author{Jaiveer Bassi\,\orcidlink{\ORCID} \\
+Independent Researcher, USA \\
+\texttt{jaiveerbassi@yahoo.com} \\
+{\footnotesize ORCID: \href{https://orcid.org/\ORCID}{\ORCID}}}
 \date{}
 
 \begin{document}
