@@ -36,7 +36,7 @@ def run(script, *args):
     cmd = [sys.executable, os.path.join(HERE, script), *map(str, args)]
     print(f"\n$ {script} {' '.join(map(str, args[:2]))}")
     r = subprocess.run(cmd, cwd=ROOT)
-    if r.returncode and script not in ("verify_tex.py",):
+    if r.returncode:
         sys.exit(f"{script} failed ({r.returncode})")
     return r.returncode
 
