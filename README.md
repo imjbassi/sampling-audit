@@ -160,7 +160,15 @@ cd paper && pdflatex main && bibtex main && pdflatex main && pdflatex main
 
 `build.py` converts, then verifies: every numeric token in the markdown must
 survive into the LaTeX, every `\cite` key must exist in `refs.bib`, every
-`\ref` must resolve, and every `\includegraphics` path must exist. The
+`\ref` must resolve, and every `\includegraphics` path must exist.
+
+`--audit` additionally checks all 28 references against OpenAlex and Semantic
+Scholar. Those are independent of Crossref, which is what `refs.bib` is built
+from, so the check is not circular. Five known disagreements are adjudicated in
+`audit_refs.py`, each with its reason and the source consulted: four are
+Semantic Scholar dating a preprint rather than the published paper, and one is
+an OpenAlex page-range error contradicted by the publisher of record. Anything
+else is reported as a regression. The
 conversion is one-way -- once you begin editing `main.tex` directly, retire
 `manuscript.md` rather than editing both.
 

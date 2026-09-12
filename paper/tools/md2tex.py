@@ -1,4 +1,4 @@
-﻿"""Convert the manuscript body to LaTeX deterministically.
+"""Convert the manuscript body to LaTeX deterministically.
 
 Written rather than pandoc'd because pandoc is not actually installed here (the
 chocolatey shim is dangling) and because a narrow converter for exactly this

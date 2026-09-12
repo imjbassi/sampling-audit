@@ -28,7 +28,9 @@ MANUAL = {
 6: """@inproceedings{kingma2014,
   author    = {Kingma, Diederik P. and Welling, Max},
   title     = {Auto-Encoding Variational {B}ayes},
-  booktitle = {International Conference on Learning Representations (ICLR)},
+  booktitle = {2nd International Conference on Learning Representations
+               (ICLR 2014), Conference Track Proceedings},
+  address   = {Banff, AB, Canada},
   year      = {2014},
   eprint    = {1312.6114},
   archivePrefix = {arXiv},
@@ -83,6 +85,18 @@ for n in sorted(entries):
                   {**UA, "Accept": "application/x-bibtex; charset=utf-8"}).strip()
         # normalise the publisher's key to ours
         bib = re.sub(r"^(@\w+\s*\{)[^,]*,", r"\g<1>" + key + ",", bib, count=1)
+
+        # JCP, PRE and similar identify articles by article number rather than
+        # a page range. Crossref carries that as `article-number`, which the
+        # BibTeX rendering drops entirely -- leaving the entry with no locator
+        # at all, so a reader cannot find the paper. Put it in `pages`.
+        if not re.search(r"pages\s*=", bib, re.I):
+            meta = json.loads(get(f"https://api.crossref.org/works/{doi}", UA))["message"]
+            artno = meta.get("article-number") or (
+                meta.get("page") if meta.get("page") else None)
+            if artno:
+                bib = re.sub(r"\n?\}\s*$", f",\n  pages = {{{artno}}}\n}}", bib)
+                print(f"     + pages={artno} (from article-number)")
         out.append(bib)
         print(f"[{n:>2}] crossref {key:<20} {doi}")
     except Exception as e:

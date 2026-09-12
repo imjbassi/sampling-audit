@@ -1,4 +1,4 @@
-﻿"""Prepare manuscript.md for pandoc: [n] -> \\cite{key}, drop the ref list.
+"""Prepare manuscript.md for pandoc: [n] -> \\cite{key}, drop the ref list.
 
 Every bracket replacement is printed so it can be audited -- the manuscript is
 full of bracketed confidence intervals like [+0.85, +0.91], which must NOT be

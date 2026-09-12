@@ -1,7 +1,8 @@
 """Regenerate paper/main.tex from paper/manuscript.md, then check it.
 
     python paper/tools/build.py            # convert + verify
-    python paper/tools/build.py --bib      # also rebuild refs.bib from Crossref
+    python paper/tools/build.py --audit    # also re-audit refs.bib (network)
+    python paper/tools/build.py --bib      # also rebuild refs.bib, then audit
 
 Run from the repository root.
 
@@ -42,6 +43,10 @@ def run(script, *args):
 if "--bib" in sys.argv:
     run("build_bib.py", MANU, BIB, MAP)
     run("clean_bib.py", BIB)
+
+if "--bib" in sys.argv or "--audit" in sys.argv:
+    # Independent of Crossref, which is what refs.bib is built from.
+    run("audit_refs.py", BIB)
 
 run("prep_md.py", MANU, MAP, BODY_MD)
 run("md2tex.py", BODY_MD, BODY_TEX)
