@@ -54,6 +54,12 @@ TABLE_META = [
     ("tab:basins", "Mean number of the three ground-truth basins visited by "
      "contiguous leading blocks of the 100~ns trajectory. Under coverage-matched "
      "subsampling all three are visited at every budget."),
+    ("tab:crossseed", "Two independent 100~ns alanine dipeptide seeds, compared "
+     "over the budgets they share. Budget inflation, the method ranking and "
+     "basin coverage all replicate. TICA's relative decline does not: its "
+     "warm-up completes one budget doubling later on seed 1, leaving no room "
+     "for selection-driven degradation within the tested range, exactly as the "
+     "doublings-remaining account predicts."),
 ]
 
 # ---------------------------------------------------------------- figure floats
@@ -93,6 +99,14 @@ FIGS = [
      "Budget correlation with and without coverage matching. The effect survives "
      "holding landscape exploration fixed, which places it in the estimator "
      "rather than in what the trajectory visited."),
+    ("anchor", "ref{fig:rama} shows", "fig:rama",
+     "figures_alanine/fig1_alanine_rama.pdf", "\\textwidth", "figure*",
+     "Alanine dipeptide ground truth, from the seed-1 trajectory: (a) "
+     "Ramachandran density, (b) the standard three-region partition that "
+     "supplies the basin labels, (c) basin occupancy. The partition is a "
+     "chemical definition and is independent of every method under audit. The "
+     "rarest basin holds 5.3\\% of frames, which is why sampling budget bites "
+     "hardest on this system."),
     ("after_table", 8, "fig:efflag", "figures_alanine/fig7_tica_effective_lag.pdf",
      "\\textwidth", "figure*",
      "Thinning a trajectory rescales TICA's lag. (a) Warm-up against sampling "

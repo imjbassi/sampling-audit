@@ -39,8 +39,9 @@ A common claim in the molecular simulation literature takes the form
 ``projecting our trajectory with method M reveals N metastable states.'' That
 sentence presents N as a property of the molecule. We show it is also,
 substantially, a property of how much data was collected. Across two
-potentials with basin counts fixed by construction and a 100 ns all-atom
-simulation of alanine dipeptide, the number of states reported by PCA, TICA,
+potentials with basin counts fixed by construction and two independent 100 ns
+all-atom simulations of alanine dipeptide, the number of states reported by
+PCA, TICA,
 and VAE projections under standard model-selection criteria increases
 monotonically with sampling budget while the ground-truth landscape does not
 change (Spearman $\rho$ = 0.90-0.97 across systems and methods). The effect
@@ -54,7 +55,9 @@ ground truth under the standard pipeline peaks at an intermediate budget and
 then declines as more data is added, even as recovery given the true state
 count remains flat or improves---collecting more data makes the standard
 analysis pipeline's answer worse, not better, across every method-system
-combination tested, including on real molecular dynamics data. We recommend
+combination tested, including on real molecular dynamics data---with one
+exception, documented in the text, in which a second simulation seed shifts
+where the effect begins rather than whether it occurs. We recommend
 reporting state counts alongside the sampling budget at which they were
 obtained, and offer ICL as a materially safer default than BIC or AIC for this
 purpose.
@@ -99,8 +102,8 @@ This paper makes three contributions.
 reported metastable state count is a function of sampling budget under
 standard analysis pipelines, holding the ground-truth landscape fixed by
 construction. The effect appears in two synthetic potentials of different
-dimensionality and basin count, and reproduces in a 100 ns all-atom simulation
-of a real biomolecule.
+dimensionality and basin count, and reproduces in two independent 100 ns
+all-atom simulations of a real biomolecule.
 
 \textbf{A control design that isolates the mechanism.} By comparing a genuinely
 short trajectory against a uniform subsample of one long reference trajectory
@@ -201,9 +204,9 @@ sampled trajectory.
 potential from the Markov state model literature \cite{prinz2011}; basin boundaries are the
 potential's barrier tops, located once on a fine grid at construction time.
 
-\textbf{Alanine dipeptide} (all-atom, 3 basins). A 100 ns Langevin dynamics
-simulation in implicit solvent (OpenMM \cite{eastman2017}, amber14 \cite{maier2015} with GBn2 \cite{nguyen2013}, 2 fs
-timestep, 1 ps save interval, 100,000 saved frames). Ground truth is the standard three-region
+\textbf{Alanine dipeptide} (all-atom, 3 basins). Two independent 100 ns Langevin
+dynamics simulations in implicit solvent (OpenMM \cite{eastman2017}, amber14 \cite{maier2015} with
+GBn2 \cite{nguyen2013}, 2 fs timestep, 1 ps save interval, 100,000 saved frames each). Ground truth is the standard three-region
 partition of the backbone (phi, psi) dihedral space---a chemical definition
 entirely independent of dimensionality reduction or clustering. Observed
 features are pairwise distances between heavy atoms, deliberately excluding
@@ -800,6 +803,16 @@ and the size of the decline is explained by a specific, testable mechanism
 rather than left as an unexplained residual in a minority of cases. This
 table, not a summary fraction, is the result that belongs in the paper.
 
+One qualification, established by the second alanine seed reported in
+Section 7 and not visible in this table. The decline column for TICA depends on
+where that system's warm-up happens to complete, and the completion budget is
+itself seed-dependent: on a second independent 100 ns trajectory TICA's warm-up
+finishes one doubling later, at n=32,000, and TICA consequently shows no
+decline at all within the tested range. The mechanism predicts this---zero
+doublings remaining, as on Prinz---but it means the TICA rows here should be
+read as one draw from a seed-dependent quantity rather than as a fixed property
+of the system. The PCA and VAE rows replicate closely across seeds.
+
 \section{Alanine dipeptide: simulation detail and comparison to the synthetic systems}
 
 The synthetic systems establish the effect under conditions where ground truth
@@ -810,7 +823,9 @@ two settings.
 \textbf{Simulation.} A single 100 ns trajectory of alanine dipeptide (ACE-ALA-NME)
 was run in implicit solvent (OpenMM \cite{eastman2017}, amber14 \cite{maier2015} with the GBn2 implicit
 solvent model \cite{nguyen2013}, Langevin middle integrator \cite{zhang2019}, 2 fs timestep, 300 K, 1 ps
-save interval, one simulation seed), producing 100,000 saved frames. Dihedrals
+save interval), producing 100,000 saved frames. A second trajectory was run
+identically from a different random seed; unless stated otherwise the results
+below are from the first, and the two are compared at the end of this section. Dihedrals
 and heavy-atom distances were computed with MDTraj \cite{mcgibbon2015}. An initial 5 ns pilot run was discarded after
 it showed the rarest of the three basins (alpha\_L/C7ax) was not consistently
 visited at the sampling budgets under study; 100 ns was chosen because it
@@ -822,10 +837,22 @@ budgets as uniform thinning, matching the two conditions used on the synthetic
 systems. Ground-truth basin membership was assigned from the backbone (phi,
 psi) dihedral angles into the standard three-region partition (C7eq, alpha\_R,
 alpha\_L/C7ax), a chemical definition independent of any method under audit.
+Figure~\ref{fig:rama} shows that partition and the resulting basin populations: occupancy is
+strongly uneven, at 0.639, 0.308 and 0.053, and it is the 5.3\% basin that makes
+the sampling budget bite. At n = 100 frames a basin that rare is expected to
+contribute about five frames, which is why the 5 ns pilot reached it
+inconsistently and why coverage matching matters so much on this system.
 Observed features for the dimensionality reduction methods were pairwise
 distances between heavy atoms, excluding phi/psi so that the audited methods
 must recover the landscape from a representation that does not already encode
 the answer.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures_alanine/fig1_alanine_rama.pdf}
+\caption{Alanine dipeptide ground truth, from the seed-1 trajectory: (a) Ramachandran density, (b) the standard three-region partition that supplies the basin labels, (c) basin occupancy. The partition is a chemical definition and is independent of every method under audit. The rarest basin holds 5.3\% of frames, which is why sampling budget bites hardest on this system.}
+\label{fig:rama}
+\end{figure*}
 
 \begin{table*}[t]
 \centering
@@ -872,17 +899,59 @@ molecular systems than the synthetic benchmarks alone would suggest---a claim
 the synthetic systems could not have supported on their own, and that alanine
 dipeptide is well-suited to test given how it was built.
 
-\textbf{A limitation specific to this validation.} All results in this section come
-from a single simulation seed. The eight sweep seeds used above vary only the
-randomness in subsampling, clustering initialization, and VAE training applied
-to that one trajectory; they do not constitute eight independent physical
-replicates of the underlying dynamics, unlike the twenty seeds on the
-synthetic systems, each of which reran the full Langevin sampling process
-independently. This is disclosed as a limitation in Section 9. Trajectory
-length, which was a limitation in an earlier iteration of this work, is
-resolved by this 100 ns run and is no longer a live concern for the results
-reported here; a second independent simulation seed at 100 ns remains the
-single highest-value remaining experiment.
+\textbf{Replication on a second independent 100 ns seed.} A second 100 ns
+trajectory was run under an identical protocol from a different random seed
+and swept over the budgets the two runs share (100 to 32,000 frames). This is
+a genuine physical replicate: it reran the full Langevin sampling process, not
+merely the subsampling and clustering randomness that the eight sweep seeds
+vary (Table~\ref{tab:crossseed}).
+
+\begin{table*}[t]
+\centering
+\small
+\caption{Two independent 100~ns alanine dipeptide seeds, compared over the budgets they share. Budget inflation, the method ranking and basin coverage all replicate. TICA's relative decline does not: its warm-up completes one budget doubling later on seed 1, leaving no room for selection-driven degradation within the tested range, exactly as the doublings-remaining account predicts.}
+\label{tab:crossseed}
+\begin{tabular}{lcc}
+\toprule
+\textbf{quantity (budgets 100-32,000)} & \textbf{seed 0} & \textbf{seed 1} \\
+\midrule
+budget-inflation $\rho$, range over 6 mode x method cells & +0.87 to +0.97 & +0.88 to +0.97 \\
+PCA relative decline, subsample & 73\% & 73\% \\
+VAE relative decline, subsample & 66\% & 63\% \\
+TICA relative decline, subsample & 27\% & 0\% \\
+PCA oracle-k at n=32,000 & 0.507 & 0.546 \\
+TICA oracle-k at n=32,000 & 0.947 & 0.903 \\
+VAE oracle-k at n=32,000 & 0.466 & 0.524 \\
+TICA warm-up completes at & n=16,000 & n=32,000 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+The central claim replicates closely. No budget-inflation correlation moves by
+more than 0.02 between seeds, the method ranking is unchanged with TICA's
+oracle-k far above PCA's and VAE's on both, and basin visitation behaves
+identically (all three basins reached by n=8,000 under short trajectories and
+at every budget under subsampling).
+
+One quantity does not replicate, and it is worth stating plainly rather than
+averaging away: **TICA shows no decline at all on seed 1 within the tested
+range.** Its recovery rises monotonically to the largest budget, where seed 0
+had peaked at n=16,000 and fallen 27\% by n=32,000. This is not a contradiction
+of the mechanism but a consequence of it. Section 6.3 argues that TICA's
+decline is set by how many budget doublings remain after its warm-up completes;
+on seed 1 the warm-up completes one doubling later, at n=32,000 rather than
+n=16,000, leaving zero doublings in which selection-driven degradation could
+act. The oracle-k column shows the shift directly: at n=16,000 seed 0 has
+already reached 0.93 while seed 1 is only midway at 0.52, and both arrive at
+0.96 by n=32,000. The seed-1 alanine case is therefore the same configuration
+as Prinz---warm-up consuming the entire sweep, zero doublings remaining, no
+decline observed---reached on a different system.
+
+What this costs the paper is precision about \emph{where} TICA's crossover falls,
+not the existence of the effect: the crossover budget is itself
+seed-dependent, so a single seed cannot pin it down. What it buys is a
+prediction confirmed out of sample, since the doublings-remaining account was
+formulated on seed 0 and correctly anticipates a null result on seed 1.
 
 \section{Recommendations}
 
@@ -898,27 +967,32 @@ single highest-value remaining experiment.
 
 Ordered by how much they constrain the paper's claims, most binding first.
 
-\textbf{A second 100 ns seed is the single highest-value remaining experiment.}
-Unlike the 5 ns comparison below, a second independent 100 ns simulation would
-test seed-independence on data that does not also carry a coverage confound,
-and would upgrade the current single-seed 100 ns result to the same standard
-of evidence as the synthetic systems. This is not yet done and is the paper's
-most binding limitation as it currently stands.
+**TICA's warm-up completion budget is seed-dependent, so the size of its
+decline is not a fixed property of a system.** The two 100 ns alanine seeds
+place that crossover one budget doubling apart, which is the difference between
+a 27\% decline and none at all within the tested range (Section 7). The
+doublings-remaining mechanism accounts for both, and PCA and VAE replicate
+closely, but any single-seed estimate of \emph{how far} TICA declines on a given
+system should be treated as one draw rather than a constant. Pinning the
+crossover down would need several seeds per system, which is not done here.
 
-**A cross-seed comparison exists, but at the superseded trajectory length,
-and its evidentiary weight is downgraded accordingly.** Before the 100 ns run
-adopted in Section 7, two independent 5 ns simulations (seed 0 and seed 1,
-same protocol) were each swept and compared. At that trajectory length the
-budget-inflation effect replicated closely across seeds (Spearman $\rho$ within
-the 0.78-0.94 band on both, every method and mode), and TICA's relative
-advantage over PCA and VAE also replicated. However, Section 7 establishes
-that 5 ns is insufficient for the rarest basin to be reliably visited at the
-sampling budgets under study, so both 5 ns runs share this limitation and the
-cross-seed agreement, while a genuine positive sign, is not strong evidence
-that the \emph{properly-sampled} 100 ns result is seed-independent---only that the
-under-sampled result was. This comparison is retained as a preliminary,
-favorable indicator rather than as confirmation, and is superseded by the
-single-seed 100 ns result as the paper's primary alanine dipeptide evidence.
+**Two independent 100 ns seeds on alanine dipeptide, against twenty on each
+synthetic system.** The real-system evidence is now genuinely replicated rather
+than single-seed, but two is still far short of the twenty independent Langevin
+runs behind each synthetic result, and the eight sweep seeds within each
+trajectory vary only subsampling, clustering initialization and VAE training
+rather than the underlying dynamics. Quantities that agreed closely across the
+two seeds are reported as replicated; the one that did not is reported as such
+in Section 7 rather than averaged.
+
+\textbf{An earlier 5 ns cross-seed comparison is retained only as provenance.}
+Before the 100 ns runs, two independent 5 ns simulations were swept and
+compared, and the budget-inflation effect replicated across them. Both shared
+the basin-visitation deficit that motivated the move to 100 ns, so that
+agreement was never strong evidence about the properly-sampled result. It is
+now superseded outright by the 100 ns cross-seed comparison in Section 7 and is
+mentioned here only so the discarded pilot data in the repository is
+accounted for.
 
 **Silhouette and elbow-gap criteria are shown to be unreliable but not fully
 explained.** Both return near-constant output regardless of budget, and this

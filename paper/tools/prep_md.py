@@ -1,4 +1,4 @@
-"""Prepare manuscript.md for pandoc: [n] -> \\cite{key}, drop the ref list.
+﻿"""Prepare manuscript.md for pandoc: [n] -> \\cite{key}, drop the ref list.
 
 Every bracket replacement is printed so it can be audited -- the manuscript is
 full of bracketed confidence intervals like [+0.85, +0.91], which must NOT be
@@ -46,7 +46,7 @@ print(f"\ncitations rewritten: {n}")
 # ("Figure 3", "Fig. 4", "Table 1"). LaTeX should number them itself.
 FIGREF = {1: "fig:landscape", 2: "fig:embeddings", 3: "fig:inflation",
           4: "fig:criteria", 5: "fig:recovery", 6: "fig:coverage",
-          7: "fig:efflag"}
+          7: "fig:efflag", 8: "fig:rama"}
 # Table mentions are matched on surrounding context, not on the number they
 # happen to carry: the numbers in the prose were written against a numbering
 # the document never actually had (it cited a "Table 4" that did not exist).
@@ -89,10 +89,13 @@ TABINTRO = [
     ("quality with the selection step removed -- as a function of both:", "tab:lagablation"),
     ("simple function of how many budget doublings the sweep has left once warm-up\ncompletes:", "tab:warmup"),
     ("quality tracks it closely:", "tab:efflag"),
+    ("randomness that the eight sweep seeds\nvary.", "tab:crossseed"),
 ]
 for ctx, label in TABINTRO:
     assert body.count(ctx) == 1, f"table intro {ctx[:40]!r} found {body.count(ctx)}x"
-    body = body.replace(ctx, ctx[:-1] + " (Table~\\ref{%s}):" % label)
+    # keep whatever punctuation ended the lead-in -- some are colons
+    # introducing the table, some are full sentences before it
+    body = body.replace(ctx, ctx[:-1] + " (Table~\\ref{%s})" % label + ctx[-1])
     t += 1
 
 leftover = re.findall(r"Table\s+\d+", body)

@@ -139,10 +139,16 @@ provenance only; see `results/NOTE.md`.
 
 ## Status
 
-Both synthetic sweeps and the 100 ns alanine dipeptide validation are complete,
-along with the TICA lag and embedding-dimension ablations. The manuscript is in
-`paper/manuscript.md`. The single highest-value remaining experiment is a second
-independent 100 ns alanine seed; see the limitations section of the manuscript.
+Both synthetic sweeps are complete, along with the TICA lag and
+embedding-dimension ablations, and the alanine dipeptide validation now runs on
+two independent 100 ns trajectories rather than one. The manuscript is in
+`paper/manuscript.md`, and `paper/main.pdf` is the built submission version.
+
+The cross-seed comparison largely replicates: no budget-inflation correlation
+moves by more than 0.02, and the method ranking is unchanged. The exception is
+TICA, whose warm-up completes one budget doubling later on seed 1 and which
+therefore shows no decline within the tested range. Section 7 of the manuscript
+reports this rather than averaging it away.
 
 ## Building the paper
 
