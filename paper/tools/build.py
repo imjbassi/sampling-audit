@@ -15,6 +15,7 @@ exactly the constructs this manuscript uses, and verify_tex.py then proves that
 every numeric token in the markdown survived into the LaTeX. That check is the
 point of the whole arrangement -- the numbers are the paper.
 """
+import io
 import os
 import subprocess
 import sys
@@ -59,5 +60,49 @@ for f in (BODY_MD, BODY_TEX):
     if os.path.exists(f):
         os.remove(f)
 
-print(f"\nmain.tex rebuilt. To produce the PDF (needs a TeX distribution):")
-print("  cd paper && pdflatex main && bibtex main && pdflatex main && pdflatex main")
+print("\nmain.tex rebuilt.")
+
+
+def find_tex(prog):
+    """Locate a TeX binary. MiKTeX installs per-user and does not always put
+    itself on PATH, so fall back to its default location before giving up."""
+    from shutil import which
+    p = which(prog)
+    if p:
+        return p
+    for base in (os.path.expandvars(r"%LOCALAPPDATA%\Programs\MiKTeX\miktex\bin\x64"),
+                 r"C:\Program Files\MiKTeX\miktex\bin\x64",
+                 "/usr/bin", "/usr/local/bin", "/Library/TeX/texbin"):
+        cand = os.path.join(base, prog + (".exe" if os.name == "nt" else ""))
+        if os.path.exists(cand):
+            return cand
+    return None
+
+
+if "--pdf" in sys.argv:
+    pdflatex, bibtex = find_tex("pdflatex"), find_tex("bibtex")
+    if not pdflatex:
+        sys.exit("pdflatex not found. Install a TeX distribution (MiKTeX or "
+                 "TeX Live), or open paper/main.tex in Overleaf.")
+    # pdflatex, bibtex, then twice more so citations and cross-references
+    # settle; bibtex is skipped if absent so the run still yields a PDF.
+    seq = [pdflatex, bibtex, pdflatex, pdflatex]
+    for i, exe in enumerate(seq, 1):
+        if exe is None:
+            continue
+        args = ([exe, "-interaction=nonstopmode", "main.tex"]
+                if exe == pdflatex else [exe, "main"])
+        r = subprocess.run(args, cwd=PAPER, stdout=subprocess.DEVNULL,
+                           stderr=subprocess.DEVNULL)
+        print(f"  pass {i}: {os.path.basename(exe)} -> exit {r.returncode}")
+
+    log = os.path.join(PAPER, "main.log")
+    if os.path.exists(log):
+        text = io.open(log, encoding="utf-8", errors="replace").read()
+        print(f"\n  undefined references/citations : {text.count('undefined')}")
+        print(f"  overfull boxes                 : {text.count('Overfull')}")
+    pdf = os.path.join(PAPER, "main.pdf")
+    print(f"\n{pdf}  ({os.path.getsize(pdf) / 1e6:.1f} MB)" if os.path.exists(pdf)
+          else "\nno PDF produced -- see paper/main.log")
+else:
+    print("Add --pdf to also build the PDF.")

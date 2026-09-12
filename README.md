@@ -153,10 +153,15 @@ reports this rather than averaging it away.
 ## Building the paper
 
 ```bash
-python paper/tools/build.py          # manuscript.md -> paper/main.tex, then check
-python paper/tools/build.py --bib    # also rebuild refs.bib from Crossref
-cd paper && pdflatex main && bibtex main && pdflatex main && pdflatex main
+python paper/tools/build.py                  # manuscript.md -> main.tex, then check
+python paper/tools/build.py --pdf            # ...and build the PDF
+python paper/tools/build.py --audit --pdf    # ...and re-verify all 28 references
+python paper/tools/build.py --bib            # rebuild refs.bib from Crossref, then audit
 ```
+
+`--pdf` runs pdflatex, bibtex and two more pdflatex passes, then reports
+undefined references and overfull boxes. It locates the TeX binaries itself,
+including MiKTeX's per-user install directory, which is often not on PATH.
 
 `build.py` converts, then verifies: every numeric token in the markdown must
 survive into the LaTeX, every `\cite` key must exist in `refs.bib`, every
