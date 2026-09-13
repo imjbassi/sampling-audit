@@ -407,11 +407,11 @@ changes on an essentially constant output and should be read as noise, not as
 landscape sensitivity.
 
 The honest summary is narrower than ``five criteria disagree'' and narrower than
-a clean ordering by penalty strength: **BIC inflates monotonically with
+a clean ordering by penalty strength: \textbf{BIC inflates monotonically with
 sampling budget; AIC is saturated at all budgets; ICL alone stays in an
 interpretable range without saturating, though it remains inaccurate in a
 method-dependent direction; and the two geometry-based criteria are
-unresponsive to budget and to landscape alike.** (Figure~\ref{fig:criteria})
+unresponsive to budget and to landscape alike.} (Figure~\ref{fig:criteria})
 
 \subsection{The two supporting tables}
 
@@ -722,8 +722,8 @@ is (compare their oracle-k column, which ranges from 0.42 to 0.90). Their
 selected-k recovery is dominated by the state-count selection failure, not by
 projection quality.
 
-**TICA's decline tracks how much budget remains after its warm-up, not the
-system.** TICA requires a minimum number of usable lagged pairs to produce a
+\textbf{TICA's decline tracks how much budget remains after its warm-up, not the
+system.} TICA requires a minimum number of usable lagged pairs to produce a
 stable projection at all; at small budgets on every system it starts near zero
 (Müller-Brown: 0.09 at n=250; Prinz: 0.00 at n=250-500; alanine: 0.00 at
 n=100). The right diagnostic for when warm-up has finished is the oracle-k
@@ -846,11 +846,12 @@ budgets as uniform thinning, matching the two conditions used on the synthetic
 systems. Ground-truth basin membership was assigned from the backbone (phi,
 psi) dihedral angles into the standard three-region partition (C7eq, alpha\_R,
 alpha\_L/C7ax), a chemical definition independent of any method under audit.
-Figure~\ref{fig:rama} shows that partition and the resulting basin populations: occupancy is
-strongly uneven, at 0.639, 0.308 and 0.053, and it is the 5.3\% basin that makes
-the sampling budget bite. At n = 100 frames a basin that rare is expected to
-contribute about five frames, which is why the 5 ns pilot reached it
-inconsistently and why coverage matching matters so much on this system.
+Figure~\ref{fig:rama} shows, for the seed-1 trajectory, that partition and the resulting
+basin populations: occupancy is strongly uneven, at 0.639, 0.308 and 0.053,
+and it is the 5.3\% basin that makes the sampling budget bite. At n = 100 frames
+a basin that rare is expected to contribute about five frames, which is why the
+5 ns pilot reached it inconsistently and why coverage matching matters so much
+on this system.
 Observed features for the dimensionality reduction methods were pairwise
 distances between heavy atoms, excluding phi/psi so that the audited methods
 must recover the landscape from a representation that does not already encode
@@ -943,8 +944,8 @@ identically (all three basins reached by n=8,000 under short trajectories and
 at every budget under subsampling).
 
 One quantity does not replicate, and it is worth stating plainly rather than
-averaging away: **TICA shows no decline at all on seed 1 within the tested
-range.** Its recovery rises monotonically to the largest budget, where seed 0
+averaging away: \textbf{TICA shows no decline at all on seed 1 within the tested
+range.} Its recovery rises monotonically to the largest budget, where seed 0
 had peaked at n=16,000 and fallen 27\% by n=32,000. This is not a contradiction
 of the mechanism but a consequence of it. Section 6.3 argues that TICA's
 decline is set by how many budget doublings remain after its warm-up completes;
@@ -976,8 +977,8 @@ formulated on seed 0 and correctly anticipates a null result on seed 1.
 
 Ordered by how much they constrain the paper's claims, most binding first.
 
-**TICA's warm-up completion budget is seed-dependent, so the size of its
-decline is not a fixed property of a system.** The two 100 ns alanine seeds
+\textbf{TICA's warm-up completion budget is seed-dependent, so the size of its
+decline is not a fixed property of a system.} The two 100 ns alanine seeds
 place that crossover one budget doubling apart, which is the difference between
 a 27\% decline and none at all within the tested range (Section 7). The
 doublings-remaining mechanism accounts for both, and PCA and VAE replicate
@@ -985,8 +986,8 @@ closely, but any single-seed estimate of \emph{how far} TICA declines on a given
 system should be treated as one draw rather than a constant. Pinning the
 crossover down would need several seeds per system, which is not done here.
 
-**Two independent 100 ns seeds on alanine dipeptide, against twenty on each
-synthetic system.** The real-system evidence is now genuinely replicated rather
+\textbf{Two independent 100 ns seeds on alanine dipeptide, against twenty on each
+synthetic system.} The real-system evidence is now genuinely replicated rather
 than single-seed, but two is still far short of the twenty independent Langevin
 runs behind each synthetic result, and the eight sweep seeds within each
 trajectory vary only subsampling, clustering initialization and VAE training
@@ -1003,8 +1004,8 @@ now superseded outright by the 100 ns cross-seed comparison in Section 7 and is
 mentioned here only so the discarded pilot data in the repository is
 accounted for.
 
-**Silhouette and elbow-gap criteria are shown to be unreliable but not fully
-explained.** Both return near-constant output regardless of budget, and this
+\textbf{Silhouette and elbow-gap criteria are shown to be unreliable but not fully
+explained.} Both return near-constant output regardless of budget, and this
 paper documents that fact and its consequence (an illusion of stability that
 happens to coincide with the correct answer on some systems and not others)
 without establishing why these particular criteria are so insensitive to this
@@ -1038,8 +1039,8 @@ the parameter, and the crossover falls where the mechanism predicts; a direct
 parameter sweep on Müller-Brown and on alanine remains untested and would
 further strengthen the claim's generality.
 
-**The embedding-dimension ablation is complete and confirms the main results
-are dimension-robust, with two secondary findings worth reporting.** Re-running
+\textbf{The embedding-dimension ablation is complete and confirms the main results
+are dimension-robust, with two secondary findings worth reporting.} Re-running
 the core measurement at n\_components in \{2, 3, 5\} on Prinz (540 conditions,
 10 seeds) shows the budget-inflation effect essentially unchanged across
 dimension for all three methods (Spearman $\rho$ stays within 0.86-0.98 with no

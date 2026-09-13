@@ -674,11 +674,12 @@ budgets as uniform thinning, matching the two conditions used on the synthetic
 systems. Ground-truth basin membership was assigned from the backbone (phi,
 psi) dihedral angles into the standard three-region partition (C7eq, alpha_R,
 alpha_L/C7ax), a chemical definition independent of any method under audit.
-Figure 8 shows that partition and the resulting basin populations: occupancy is
-strongly uneven, at 0.639, 0.308 and 0.053, and it is the 5.3% basin that makes
-the sampling budget bite. At n = 100 frames a basin that rare is expected to
-contribute about five frames, which is why the 5 ns pilot reached it
-inconsistently and why coverage matching matters so much on this system.
+Figure 8 shows, for the seed-1 trajectory, that partition and the resulting
+basin populations: occupancy is strongly uneven, at 0.639, 0.308 and 0.053,
+and it is the 5.3% basin that makes the sampling budget bite. At n = 100 frames
+a basin that rare is expected to contribute about five frames, which is why the
+5 ns pilot reached it inconsistently and why coverage matching matters so much
+on this system.
 Observed features for the dimensionality reduction methods were pairwise
 distances between heavy atoms, excluding phi/psi so that the audited methods
 must recover the landscape from a representation that does not already encode

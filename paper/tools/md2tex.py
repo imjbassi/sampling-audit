@@ -293,6 +293,11 @@ if in_abstract:
 doc = "\n".join(out).strip() + "\n"
 
 # ---- whole-document typography ---------------------------------------------
+# Inline conversion normally handles bold spans line by line. Wrapped source
+# paragraphs can place the opening and closing ** on different lines, leaving
+# literal Markdown in the PDF; convert those residual spans across newlines.
+doc, nb = re.subn(r"\*\*(.+?)\*\*", r"\\textbf{\1}", doc, flags=re.S)
+
 # These have to run across the finished text, not line by line: the manuscript
 # wraps at 78 columns, so quoted phrases routinely straddle a newline and the
 # per-line pass cannot see both ends of them.
@@ -316,6 +321,6 @@ doc, nr = re.subn(r"(?<![\\\w])rho(?![\w])", r"$\\rho$", doc)
 doc = re.sub(r"\x02(\d+)\x02", lambda m: _held[int(m.group(1))], doc)
 
 io.open(OUT, "w", encoding="utf-8", newline="\n").write(doc)
-print(f"multi-line quotes fixed: {nq}   'rho' -> symbol: {nr}")
+print(f"multi-line bold fixed: {nb}   quotes fixed: {nq}   'rho' -> symbol: {nr}")
 print(f"tables: {tbl_i}   figures: {len(FIGS)}")
 print(f"wrote {OUT}")
