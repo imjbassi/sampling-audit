@@ -1,16 +1,8 @@
 """
 Model-selection criteria for "how many metastable states are there?"
 
-THIS MODULE EXISTS BECAUSE OF THE OBVIOUS REFEREE OBJECTION.
-
-If we only used BIC, a referee would correctly say: "BIC's penalty grows like
-log(n) while the likelihood gain from an extra Gaussian component grows like n,
-so under model misspecification -- and a projected free energy basin is never
-exactly Gaussian -- BIC selects more components as n grows. Your effect is a
-known property of your criterion, not of dimensionality reduction."
-
-That objection has to be answered with evidence, not prose. So every criterion
-below is computed on every condition:
+The criteria are computed on the same embeddings to expose criterion-specific
+failure modes. They are not independent confirmations of one mechanism:
 
   bic        -- standard, and the one most practitioners use
   aic        -- weaker penalty; if the effect were purely a penalty-strength
@@ -21,10 +13,10 @@ below is computed on every condition:
   silhouette -- geometry-based, likelihood-free; shares no assumptions with the
                 three above
   elbow_gap  -- largest relative drop in within-cluster dispersion (k-means),
-                a crude but assumption-light stand-in for reading the plot by eye
+                a crude descriptive stand-in for reading the plot by eye
 
-The paper's claim is only as strong as its weakest criterion. If the trend
-survives ICL and silhouette, it is not a BIC artifact.
+The manuscript's monotone component-count claim is explicitly BIC-specific;
+the other criteria are sensitivity analyses and behave differently.
 """
 
 import numpy as np

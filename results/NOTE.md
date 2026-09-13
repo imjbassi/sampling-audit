@@ -14,6 +14,7 @@ container; that is no longer the case and the warning has been removed.
 | `alanine_sweep_seed1.csv` | 288 | superseded 5 ns pilot, seed 1 — retained for provenance only |
 | `dim_ablation.csv` | 540 | Prinz, n_components in {2,3,5} x 3 methods x 6 budgets x 10 seeds |
 | `tica_lag_ablation.csv` | 300 | Prinz, lag in {5,10,20,50,100} x 6 budgets x 10 seeds |
+| `iid_equilibrium_control.csv` | 160 | Exact latent coordinates, 2 Boltzmann distributions x 8 budgets x 10 IID seeds; BIC only |
 
 ## Which alanine file the paper uses
 
@@ -32,5 +33,8 @@ purpose.
 
 ## Reproducing
 
-Run `./run_all.sh` on your own machine. At 20 seeds across both potentials
-expect several hours; use `--resume` freely, it skips completed conditions.
+Run `./run_all.sh` on your own machine. It writes fresh files under
+`reproduction_results/` by default so committed results cannot be mistaken for
+a completed rerun. At 20 seeds across both potentials expect several hours.
+Individual drivers support `--resume` when explicitly pointed at a partial
+output file.

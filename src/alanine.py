@@ -170,8 +170,9 @@ def run_sweep(dcd, top, budgets=(250, 500, 1000, 2000, 4000, 8000, 16000,
 
     Budgets are drawn by uniform thinning of the single long trajectory, which
     is the coverage-matched (`subsample`) condition from the toy experiment.
-    The `short` condition is obtained by taking contiguous leading blocks
-    instead -- that mirrors an analyst who simply stopped the simulation early.
+    The `short` condition is obtained from random contiguous windows instead;
+    this retains temporal contiguity while avoiding a privileged trajectory
+    origin. The exact start index is determined by the recorded sweep seed.
 
     Results are appended in batches of 10 rather than written once at the end,
     and `resume` skips conditions already present in `out`. The full grid is a

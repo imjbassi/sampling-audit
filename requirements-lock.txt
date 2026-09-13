@@ -1,0 +1,10 @@
+# Analysis environment used for the reported Linux/WSL sweeps, recorded
+# 2026-09-13. The installed torch build was 2.14.0+cu130; the base version is
+# used here because CUDA wheel selection is platform-specific.
+numpy==2.4.6
+scipy==1.17.1
+scikit-learn==1.9.0
+pandas==3.0.5
+matplotlib==3.11.1
+torch==2.14.0
+pytest==8.4.2

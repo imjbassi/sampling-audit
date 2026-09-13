@@ -15,7 +15,8 @@ import pandas as pd
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from analyze import budget_trend, summarize, ceiling_report  # noqa: E402
+from analyze import (budget_trend, summarize, ceiling_report,
+                     paired_mode_difference)                 # noqa: E402
 from selection import CRITERIA                               # noqa: E402
 
 
@@ -38,7 +39,9 @@ def table_budget_trend(df):
         lambda r: f"{r.spearman_rho:+.2f} [{r.rho_ci_lo:+.2f}, {r.rho_ci_hi:+.2f}]",
         axis=1,
     )
-    return t[["criterion", "mode", "method", "rho [95% CI]", "p_value",
+    # The pooled scipy p-value treats rows as independent and is not a valid
+    # inferential summary for repeated budgets within seeds.
+    return t[["criterion", "mode", "method", "rho [95% CI]",
               "n_seeds", "n_obs"]]
 
 
@@ -101,8 +104,13 @@ def main():
               "the inflation is *understated*.", "",
               cr.to_markdown(index=False), ""]
 
+    paired = paired_mode_difference(df, "k_bic", n_boot=3000)
+    lines += ["## Table 5 — Paired coverage-mode contrast", "",
+              "Delta is rho(subsample) minus rho(short), bootstrapped over "
+              "matched seeds.", "", paired.to_markdown(index=False), ""]
+
     os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
-    with open(args.out, "w") as f:
+    with open(args.out, "w", encoding="utf-8", newline="\n") as f:
         f.write("\n".join(lines))
     print(f"[report] wrote {args.out}")
     print("\n".join(lines[:40]))

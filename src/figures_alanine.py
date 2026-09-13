@@ -83,14 +83,15 @@ def fig7_tica_lag(df, outdir="figures_alanine"):
     axes[0].set_xscale("log")
     axes[0].set_xlabel("sampling budget (saved frames)")
     axes[0].set_ylabel("oracle-k ARI (projection quality)")
-    axes[0].set_title("(a) Warm-up against budget")
+    axes[0].set_title("(a) Recovery against budget")
     axes[0].legend(loc="upper left")
     axes[0].set_ylim(-0.05, 1.02)
 
     # (b) the same points against the lag TICA actually sees. This separates the
     # two modes rather than collapsing them, which is the point: every
     # `subsample` point is placed by its stride, and the whole 0.25 -> 0.93 jump
-    # falls across the 100 ps line, so lag alone accounts for that curve. The
+    # falls near the 100 ps empirical crossover. This is descriptive rather
+    # than an independently estimated transition timescale. The
     # `short` points all sit at a fixed 10 ps and still span 0.15 to 0.96, so
     # their spread is sample size alone. Two mechanisms, one per mode.
     for mode, mk in (("short", "o"), ("subsample", "s")):
@@ -103,7 +104,7 @@ def fig7_tica_lag(df, outdir="figures_alanine"):
                      label=mode)
     axes[1].axvline(DIHEDRAL_TIMESCALE_PS, color="k", ls=":", lw=1.4)
     axes[1].text(DIHEDRAL_TIMESCALE_PS * 1.15, 0.05,
-                 "dihedral transition\ntimescale", fontsize=7.5, va="bottom")
+                 "empirical crossover\n(~100 ps)", fontsize=7.5, va="bottom")
     axes[1].set_xscale("log")
     axes[1].set_xlabel(r"effective lag $\tau_{\mathrm{eff}} = L\,(N/n)\,\Delta t$  (ps)")
     axes[1].set_ylabel("oracle-k ARI")
@@ -111,13 +112,13 @@ def fig7_tica_lag(df, outdir="figures_alanine"):
     axes[1].legend(loc="upper right", title="mode")
     axes[1].set_ylim(-0.05, 1.02)
 
-    fig.suptitle("Thinning a trajectory rescales TICA's lag: warm-up tracks "
-                 r"$\tau_{\mathrm{eff}}$, not sample size", y=1.04)
+    fig.suptitle("Thinning a trajectory rescales TICA's lag: recovery tracks "
+                 r"$\tau_{\mathrm{eff}}$ in the subsample sweep", y=1.04)
     _save(fig, outdir, "fig7_tica_effective_lag")
 
 
 def fig1_alanine_rama(dcd, top, outdir="figures_alanine", stride=10):
-    """Ground truth: Ramachandran density and the three-region partition."""
+    """Structural reference: Ramachandran density and fixed partition."""
     try:
         import mdtraj as md                                        # noqa: F401
     except ImportError:
@@ -140,7 +141,7 @@ def fig1_alanine_rama(dcd, top, outdir="figures_alanine", stride=10):
 
     axes[1].scatter(phi, psi, c=labels, s=1.2, alpha=0.35, cmap=cmap,
                     vmin=0, vmax=2)
-    axes[1].set_title(f"(b) Ground-truth basins (k={len(np.unique(labels))})")
+    axes[1].set_title(f"(b) Reference regions (k={len(np.unique(labels))})")
     for i, nm in enumerate(names):
         axes[1].scatter([], [], c=[cmap(i)], s=22, label=nm)
     axes[1].legend(loc="lower left", fontsize=7.5)
@@ -160,7 +161,7 @@ def fig1_alanine_rama(dcd, top, outdir="figures_alanine", stride=10):
         a.set_ylabel(r"$\psi$ (rad)")
         a.set_xlim(-np.pi, np.pi)
         a.set_ylim(-np.pi, np.pi)
-    fig.suptitle(f"Alanine dipeptide ground truth ({len(traj)} frames shown, "
+    fig.suptitle(f"Alanine dipeptide structural reference ({len(traj)} frames shown, "
                  f"stride {stride})", y=1.03)
     _save(fig, outdir, "fig1_alanine_rama")
 

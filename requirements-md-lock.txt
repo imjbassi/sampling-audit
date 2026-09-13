@@ -1,0 +1,4 @@
+# Molecular-dynamics environment used for the alanine protocol (Python 3.11.15).
+-r requirements-lock.txt
+openmm==8.6
+mdtraj==1.11.1.post2

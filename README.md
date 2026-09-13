@@ -1,8 +1,9 @@
 # Sampling-Budget Audit of Dimensionality Reduction for Conformational Landscapes
 
-Auditing whether the metastable states that PCA, TICA, and VAE projections
-"reveal" in molecular simulation data are properties of the free energy
-landscape, or partly artifacts of how much data was collected.
+Auditing whether Gaussian-mixture component counts in PCA, TICA, and VAE
+projections are properties of the free-energy landscape or partly artifacts of
+how much data was collected. These are apparent basins, not kinetically
+validated metastable states.
 
 ## The question
 
@@ -36,15 +37,20 @@ explain it, and the inflation lives in the estimator. If it vanishes, it is an
 exploration deficit. Running only `short` and asserting either one would not be
 a result.
 
-A second control guards the other obvious objection — that BIC selects more
-Gaussian components as *n* grows under model misspecification, independent of
-any real structure. Five selection criteria are computed on every condition
-(BIC, AIC, ICL, silhouette, elbow gap). ICL and silhouette share almost none of
-BIC's assumptions, so the claim is only made to the extent it survives them.
+A second analysis distinguishes criterion-specific behavior. Five diagnostics
+are computed on every condition (BIC, AIC, ICL, silhouette, and a simple elbow
+rule), but they do not behave alike and are not presented as five independent
+confirmations. BIC supplies the monotone component-count result; the others are
+sensitivity checks with their own limitations.
 
-A third control fixes VAE training at a constant number of gradient steps
-rather than a constant number of epochs, so "more data" is never silently
-confounded with "more optimisation".
+A third control targets a constant number of VAE gradient updates rather than
+a constant number of epochs. Full-epoch rounding adds at most 32 updates (1.1%)
+and is disclosed in the manuscript; it does not scale monotonically with data.
+
+An IID equilibrium control samples the exact synthetic latent coordinates from
+gridded Boltzmann distributions. It removes trajectory autocorrelation and
+projection learning; the BIC trend remains (+0.92 on Müller–Brown and +0.86 on
+Prinz), directly isolating an estimator-splitting contribution.
 
 ## Layout
 
@@ -58,24 +64,29 @@ src/
   sweep.py        the experiment driver
   analyze.py      bootstrap CIs over seeds; Spearman budget-trend tests
   figures.py         all publication figures
-  figures_alanine.py alanine-specific panels (Ramachandran ground truth;
-                     TICA effective-lag mechanism)
+  figures_alanine.py alanine-specific panels (Ramachandran reference;
+                     TICA effective-lag association)
   alanine.py         real-system validation (alanine dipeptide, optional)
 paper/
   manuscript.md   the full manuscript (markdown source)
   main.tex        submission LaTeX, generated from manuscript.md
-  refs.bib        28 references, built from publisher metadata
+  refs.bib        29 references, built from publisher metadata
   tools/          one-way markdown -> LaTeX pipeline and its checks
   outline.md      section-by-section plan mapped to figures
   threats.md      threats to validity and how each is addressed
 results/
   NOTE.md         inventory: which sweep file is authoritative, and why
+  iid_equilibrium_control.csv  exact-latent IID Boltzmann control
 ```
 
 ## Reproducing
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements-lock.txt  # recorded analysis environment
+# or: pip install -r requirements.txt # supported minimum versions
+
+# fresh outputs; does not silently resume from committed result files
+./run_all.sh
 
 # main sweep: ~3-6 hours on CPU at these settings
 python src/sweep.py \
@@ -100,7 +111,8 @@ and restarted safely.
 ### Optional real-system validation
 
 ```bash
-pip install -r requirements-md.txt
+pip install -r requirements-md-lock.txt  # recorded MD environment
+# or: pip install -r requirements-md.txt # supported minimum versions
 
 # 100 ns; ~1 h on a GPU, overnight on CPU
 python src/alanine.py simulate --ns 100
@@ -146,7 +158,7 @@ two independent 100 ns trajectories rather than one. The manuscript is in
 
 The cross-seed comparison largely replicates: no budget-inflation correlation
 moves by more than 0.02, and the method ranking is unchanged. The exception is
-TICA, whose warm-up completes one budget doubling later on seed 1 and which
+TICA, whose high-recovery crossover occurs one budget doubling later on seed 1 and which
 therefore shows no decline within the tested range. Section 7 of the manuscript
 reports this rather than averaging it away.
 
@@ -155,7 +167,7 @@ reports this rather than averaging it away.
 ```bash
 python paper/tools/build.py                  # manuscript.md -> main.tex, then check
 python paper/tools/build.py --pdf            # ...and build the PDF
-python paper/tools/build.py --audit --pdf    # ...and re-verify all 28 references
+python paper/tools/build.py --audit --pdf    # ...and re-verify all 29 references
 python paper/tools/build.py --bib            # rebuild refs.bib from Crossref, then audit
 ```
 
@@ -167,7 +179,7 @@ including MiKTeX's per-user install directory, which is often not on PATH.
 survive into the LaTeX, every `\cite` key must exist in `refs.bib`, every
 `\ref` must resolve, and every `\includegraphics` path must exist.
 
-`--audit` additionally checks all 28 references against OpenAlex and Semantic
+`--audit` additionally checks all 29 references against OpenAlex and Semantic
 Scholar. Those are independent of Crossref, which is what `refs.bib` is built
 from, so the check is not circular. Five known disagreements are adjudicated in
 `audit_refs.py`, each with its reason and the source consulted: four are

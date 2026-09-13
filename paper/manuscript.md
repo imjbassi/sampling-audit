@@ -3,32 +3,28 @@
 
 ## Abstract
 
-A common claim in the molecular simulation literature takes the form
-"projecting our trajectory with method M reveals N metastable states." That
-sentence presents N as a property of the molecule. We show it is also,
-substantially, a property of how much data was collected. Across two
-potentials with basin counts fixed by construction and two independent 100 ns
-all-atom simulations of alanine dipeptide, the number of states reported by
-PCA, TICA,
-and VAE projections under standard model-selection criteria increases
-monotonically with sampling budget while the ground-truth landscape does not
-change (Spearman rho = 0.90-0.97 across systems and methods). The effect
-survives a coverage-matched control that holds landscape exploration fixed and
-varies only sample size, which rules out incomplete exploration as the
-explanation. It is not reducible to a single criterion's idiosyncrasy: AIC is
-saturated at every budget tested, BIC inflates monotonically, and only the
-integrated completed likelihood (ICL) avoids reaching the search ceiling,
-though it remains inaccurate in a method-dependent direction. Recovery against
-ground truth under the standard pipeline peaks at an intermediate budget and
-then declines as more data is added, even as recovery given the true state
-count remains flat or improves -- collecting more data makes the standard
-analysis pipeline's answer worse, not better, across every method-system
-combination tested, including on real molecular dynamics data -- with one
-exception, documented in the text, in which a second simulation seed shifts
-where the effect begins rather than whether it occurs. We recommend
-reporting state counts alongside the sampling budget at which they were
-obtained, and offer ICL as a materially safer default than BIC or AIC for this
-purpose.
+A common claim in molecular simulation is that projecting a trajectory reveals
+N metastable states. Here N is operationally the number of Gaussian-mixture
+components selected in a low-dimensional embedding; without a kinetic model it
+should be read as an apparent-basin count, not a validated metastable-state
+count. Across two potentials with basin counts fixed by construction and two
+independent 100 ns alanine-dipeptide simulations, the BIC-selected component
+count rises strongly with sampling budget (Spearman rho = 0.87-0.97 across
+systems and methods) although the reference landscape is unchanged. The trend
+persists under uniform thinning of a common reference trajectory, where
+coverage is approximately matched, and under IID Boltzmann sampling in the
+exact synthetic latent coordinates, which removes time correlation and
+projection learning. Other criteria exhibit different failure
+modes: AIC is frequently ceiling-censored or non-monotone, ICL never reaches
+the tested ceiling but remains method-dependently inaccurate, and silhouette
+and the simple elbow diagnostic are largely insensitive. BIC-selected recovery
+often peaks at an intermediate budget and then declines even while recovery at
+the reference component count is flat or improves. One exception is explicit:
+alanine TICA seed 1 shows no decline within the tested range because its
+high-recovery crossover occurs at the last budget. We recommend reporting
+sampling-budget curves, treating mixture components as candidate states until
+kinetically validated, and using ICL only as a less-ceiling-prone sensitivity
+analysis rather than a general default.
 
 ## 1. Introduction
 
@@ -58,16 +54,15 @@ known independently of any dimensionality reduction or clustering method: two
 synthetic potentials with basin count fixed by construction, and a real
 all-atom simulation of alanine dipeptide, whose three conformational states are
 defined by backbone dihedral angles rather than by any method under audit. On
-every system tested, the number of states reported by a standard
-projection-plus-model-selection pipeline increases with sampling budget at
-fixed ground truth, and a coverage-matched control rules out incomplete
-exploration as the explanation.
+every system tested, the BIC-selected Gaussian-component count increases with
+sampling budget at fixed reference labels. A coverage-matched control shows
+that incomplete exploration is not a sufficient explanation.
 
 This paper makes three contributions.
 
 **A controlled audit of a previously undocumented confound.** We show that
-reported metastable state count is a function of sampling budget under
-standard analysis pipelines, holding the ground-truth landscape fixed by
+BIC-selected mixture-component count is a function of sampling budget in the
+audited pipelines, holding the reference landscape fixed by
 construction. The effect appears in two synthetic potentials of different
 dimensionality and basin count, and reproduces in two independent 100 ns
 all-atom simulations of a real biomolecule.
@@ -78,24 +73,21 @@ at matched sample size, we separate two candidate explanations that prior
 comparative work does not distinguish: whether the effect reflects incomplete
 exploration of the landscape, or the state-count estimator's response to
 sample size independent of exploration. The effect persists under coverage
-matching on every system tested, which locates it in the estimator rather than
-in what the trajectory visited.
+matching on every system tested, which makes incomplete exploration
+insufficient as a sole explanation.
 
-**A practical recommendation, not just a diagnosis.** Five model-selection
-criteria are compared on identical data. BIC and AIC both inflate with budget,
-with AIC additionally saturated at every budget tested rather than trending; the
+**A practical recommendation, not just a diagnosis.** Five selection
+diagnostics are compared on identical data. Their behavior is criterion
+dependent: BIC trends strongly with budget, AIC is often censored or non-monotone, and the
 integrated completed likelihood (ICL) never reaches the search ceiling on
 either synthetic system, though it is not thereby accurate. We further
-localize where the resulting error comes from: across all nine method-system
-pairs tested, recovery under the standard pipeline declines from its peak to
-the largest budget tested, but the size of the decline is explained by a
-single mechanism rather than left unexplained. PCA and VAE decline sharply
-(43-84%) regardless of how faithful their projection is; TICA declines only
-as much as its warm-up phase -- the minimum data needed to produce a stable
-projection at all -- leaves room for the ordinary selection-driven
-degradation to operate, ranging from 12% where warm-up consumes the entire
-tested range, through 37% where two budget doublings remain after it, to 53%
-where most of the range remains.
+localize where the resulting error occurs: across the seed-0 summary of nine
+method-system pairs, BIC-selected recovery declines from its peak to the
+largest budget tested. PCA and VAE decline sharply (43-84%). TICA's smaller and
+more variable declines are associated with how much of the tested range remains
+after oracle-k recovery first exceeds 0.80; the second alanine seed shifts that
+crossover and shows no decline within range. This association is descriptive,
+not a general mechanism established from three systems.
 
 We do not claim that any published metastable-state count is wrong. The claim
 is that such counts are, by default, incompletely reported: a number without
@@ -116,6 +108,12 @@ we ask not which method is best at a given budget, but whether the answer any
 method gives depends on the budget itself. We are not aware of prior work that
 varies sampling budget at fixed, independently known ground truth to isolate
 this effect.
+
+Current best-practice tutorials explicitly separate dimensionality reduction
+and geometric clustering from kinetic validation, including lag sensitivity,
+implied-timescale analysis and Chapman-Kolmogorov testing [29]. That distinction
+sets the scope of this paper: its fitted GMM components are candidate structural
+states, not a substitute for a validated kinetic model.
 
 **Undersampling and non-ergodicity in molecular dynamics.** It is well
 established and frequently acknowledged that molecular dynamics trajectories
@@ -151,8 +149,9 @@ a correction to any specific published result.
 
 ### 3.1 Systems
 
-Three systems are used, chosen so that ground truth is available independently
-of any method under audit.
+Three systems are used. The synthetic systems have exact basin labels; alanine
+uses an independently specified dihedral reference partition rather than a
+kinetically validated ground truth.
 
 **Müller-Brown potential** (2 latent dimensions, 3 basins). A standard
 three-well potential [1] with minima located by gradient descent from known
@@ -165,10 +164,11 @@ sampled trajectory.
 potential from the Markov state model literature [2]; basin boundaries are the
 potential's barrier tops, located once on a fine grid at construction time.
 
-**Alanine dipeptide** (all-atom, 3 basins). Two independent 100 ns Langevin
+**Alanine dipeptide** (all-atom, 3 reference regions). Two independent 100 ns Langevin
 dynamics simulations in implicit solvent (OpenMM [24], amber14 [25] with
-GBn2 [26], 2 fs timestep, 1 ps save interval, 100,000 saved frames each). Ground truth is the standard three-region
-partition of the backbone (phi, psi) dihedral space -- a chemical definition
+GBn2 [26], 2 fs timestep, 1 ps save interval, 100,000 saved frames each). The
+reference labels use a fixed three-region partition of backbone (phi, psi)
+space -- a chemical definition
 entirely independent of dimensionality reduction or clustering. Observed
 features are pairwise distances between heavy atoms, deliberately excluding
 phi/psi, so that the methods under audit must recover the landscape from a
@@ -207,28 +207,37 @@ Comparing the two isolates whether an observed effect is due to incomplete
 exploration (would appear in `short` but not `subsample`) or to the estimator's
 response to sample size (would appear in both).
 
+An additional IID equilibrium control removes both time correlation and
+projection learning. For each synthetic potential, independent samples are
+drawn with replacement from a fine-grid Boltzmann distribution in the exact
+latent coordinates (20,001 grid points in one dimension; 240 x 240 in two),
+using 10 seeds and the same budgets and BIC search ceiling. This control asks
+whether BIC component splitting requires either a trajectory or a learned
+embedding.
+
 ### 3.3 Methods under audit
 
 **PCA** [3], **TICA** [4, 5] (solved as an explicit generalized eigenproblem
 so its regularization is auditable rather than a library default), and a
-**VAE** [6, 7] (fixed architecture, trained for a fixed number of gradient
-steps rather than a fixed number of epochs, so that larger datasets are not
-silently given more optimization). t-SNE [22] is reported only in an appendix
-figure: its cluster count is governed substantially by its perplexity
-hyperparameter rather than by data structure [23], so treating its output as a
-state-count estimate would not be sound.
+**VAE** [6, 7] (fixed architecture, trained to a fixed gradient-step target
+rather than a fixed epoch count). Full epochs cause 0-32 extra updates depending
+on budget, at most 1.1% of the 3,000-4,000-step target; this disclosed rounding
+variation is not proportional to dataset size. t-SNE [22] is excluded from the quantitative
+audit because its apparent cluster structure depends strongly on perplexity
+and other visualization choices [23].
 
 ### 3.4 State-count selection
 
-Five criteria for choosing the number of mixture components in the projected
+Five diagnostics for choosing the number of components in the projected
 space are compared on identical embeddings: BIC [15], AIC [16], the integrated
 completed likelihood (ICL [17], which adds an entropy penalty on component
 overlap to BIC), silhouette score [20], and an elbow heuristic on k-means
-inertia. This comparison is
-included because the most direct objection to the central finding is that it
-is a known property of BIC's penalty behavior under model misspecification
-rather than a property of the dimensionality reduction step; the five-criterion
-comparison is designed to answer that objection with evidence.
+inertia. BIC, AIC and ICL select Gaussian-mixture models. Silhouette and the
+simple largest-relative-inertia-drop elbow rule are descriptive sensitivity
+checks, not validated state estimators; their selected k is used to refit a GMM
+only so recovery is measured on a common clustering family. The comparison is
+used to distinguish criterion-specific failure modes, not to claim that five
+independent estimators corroborate one mechanism.
 
 ### 3.5 Metrics and statistics
 
@@ -252,10 +261,16 @@ any specific functional form. Twenty seeds are used per condition on the
 synthetic potentials; eight seeds on alanine dipeptide, reflecting its higher
 per-condition compute cost.
 
+For the coverage contrast, seeds are paired across `short` and `subsample` and
+resampled jointly. The reported interval is for rho(subsample) minus rho(short);
+overlap between two marginal confidence intervals is not used as a hypothesis
+test. Pooled row-level p-values are not interpreted because repeated budgets
+within a seed are not independent replicates.
+
 ## 4. Reported state count tracks sampling budget
 
 Across both landscapes, all three projections, and both sampling modes, the
-number of metastable states selected by BIC increases monotonically with the
+number of Gaussian components selected by BIC increases strongly with the
 number of saved frames, while the underlying potential is identical in every
 condition.
 
@@ -291,7 +306,7 @@ binds, the tabulated mean is a lower bound on what the criterion would have
 selected, and the rank correlation is correspondingly attenuated. The reported
 effect is therefore conservative.
 
-## 5. The effect is not reducible to one selection criterion
+## 5. Selection criteria exhibit different failure modes
 
 The obvious objection is that BIC's penalty grows as log n while the
 likelihood gain from an additional mixture component grows with n, so BIC
@@ -303,9 +318,9 @@ pipeline.
 Five criteria were therefore computed on every condition. The outcome is more
 informative than a simple yes or no.
 
-**AIC is saturated, not budget-driven.** AIC reaches the search ceiling in
+**AIC is frequently ceiling-censored and non-monotone.** AIC reaches the search ceiling in
 24-84% of Müller-Brown conditions and 12-65% of Prinz conditions (Table 4) --
-65-84% for PCA specifically, 24-28% for TICA and VAE -- but
+65-84% for PCA specifically on Müller-Brown, 24-28% for TICA and VAE there -- but
 Fig. 4 shows why that number cannot be read as inflation: AIC's curve is
 U-shaped, starting at ~14 states for PCA and ~8 for TICA and VAE at n = 250,
 dipping near n = 1000, then returning to ~14.5. It over-selects at every
@@ -314,7 +329,7 @@ non-monotone curve that spends most of its range censored at the cap and is
 therefore uninterpretable. AIC is reported for completeness and excluded from
 the trend claim.
 
-**ICL never saturates, but it is not accurate.** ICL is the only criterion that
+**ICL does not reach the tested ceiling, but it is not accurate.** ICL is the only criterion that
 reached the ceiling in zero of twelve (system x mode x method) cells,
 which keeps its output in an interpretable range. Within that range it is
 wrong in a method-dependent direction (Fig. 4, Müller-Brown, true k = 3): PCA
@@ -418,7 +433,7 @@ conjecture and is flagged as such; it is a natural target for follow-up rather
 than something the present data settles. It is reported here because a
 recommendation to use ICL would be misleading without it.
 
-## 6. The effect is not explained by incomplete exploration
+## 6. Incomplete exploration is not a sufficient explanation
 
 The competing mechanism is exploration deficit: short trajectories visit less
 of the landscape, so fewer or differently shaped basins are populated, and the
@@ -431,21 +446,41 @@ coverage is held approximately fixed by construction while only the number of
 points varies.
 
 Coverage matching does not remove the effect. BIC budget correlations under
-`short` and `subsample` are statistically indistinguishable in every cell:
+`short` and `subsample` are closely similar in magnitude:
 
-| system | method | short | subsample |
+| system | method | short | subsample | paired delta rho [95% CI] |
+|---|---|---|---|---|
+| Müller–Brown | PCA | +0.88 [+0.85, +0.91] | +0.88 [+0.85, +0.91] | +0.002 [-0.037, +0.037] |
+| Müller–Brown | TICA | +0.94 [+0.93, +0.96] | +0.96 [+0.95, +0.97] | +0.017 [+0.004, +0.030] |
+| Müller–Brown | VAE | +0.92 [+0.91, +0.94] | +0.93 [+0.92, +0.94] | +0.007 [-0.014, +0.028] |
+| Prinz | PCA | +0.95 [+0.93, +0.96] | +0.95 [+0.94, +0.96] | +0.004 [-0.011, +0.020] |
+| Prinz | TICA | +0.97 [+0.97, +0.98] | +0.96 [+0.95, +0.97] | -0.014 [-0.024, -0.005] |
+| Prinz | VAE | +0.93 [+0.92, +0.94] | +0.91 [+0.89, +0.93] | -0.022 [-0.047, +0.001] |
+
+Paired seed bootstraps estimate subsample minus short rho. All absolute
+differences are at most 0.022; two TICA intervals exclude zero, so the modes are
+not literally statistically indistinguishable. The practically small deltas
+show that strong positive BIC trends survive approximate coverage matching,
+which is inconsistent with incomplete exploration as the sole explanation.
+(Figure 6)
+
+**The effect also survives independent equilibrium sampling in the exact latent
+coordinates.** This control removes temporal correlation, incomplete trajectory
+mixing, observation noise, and dimensionality reduction simultaneously. BIC
+still splits the fixed equilibrium densities increasingly finely as sample size
+grows. The independent-sample result is:
+
+| system | BIC budget rho [95% CI] | mean k at n=250 | mean k at n=32,000 |
 |---|---|---|---|
-| Müller–Brown | PCA | +0.88 [+0.85, +0.91] | +0.88 [+0.85, +0.91] |
-| Müller–Brown | TICA | +0.94 [+0.93, +0.96] | +0.96 [+0.95, +0.97] |
-| Müller–Brown | VAE | +0.92 [+0.91, +0.94] | +0.93 [+0.92, +0.94] |
-| Prinz | PCA | +0.95 [+0.93, +0.96] | +0.95 [+0.94, +0.96] |
-| Prinz | TICA | +0.97 [+0.97, +0.98] | +0.96 [+0.95, +0.97] |
-| Prinz | VAE | +0.93 [+0.92, +0.94] | +0.91 [+0.89, +0.93] |
+| Müller-Brown | +0.92 [+0.90, +0.94] | 2.7 | 8.1 |
+| Prinz | +0.86 [+0.84, +0.88] | 4.0 | 7.0 |
 
-Confidence intervals overlap in all six comparisons. Whatever drives the
-inflation, it survives holding coverage fixed, which locates it in the
-estimator's response to sample size rather than in what the trajectory
-happened to visit. (Figure 6)
+Intervals bootstrap the 10 independent IID samples. Because the inputs are the
+exact latent coordinates and contain no time ordering, this result identifies
+BIC under a misspecified finite-Gaussian model as sufficient to produce a
+substantial budget trend. It does not show that temporal dependence and
+projection quality are irrelevant in the trajectory pipelines; those factors
+can modify the magnitude and, for TICA, the low-budget behavior.
 
 ### Recovery degrades as sampling budget increases
 
@@ -455,9 +490,9 @@ intermediate budget and then declines, while oracle-k recovery over the same
 range is flat or rising. (Figure 5)
 
 A coverage artifact was checked for before drawing this conclusion. Conditions
-in which the trajectory visited fewer basins than exist produce a constant
-ground-truth label vector, against which a single-cluster solution scores
-ARI = 1.0 trivially. Such conditions occur only in `short` mode at small
+with incomplete reference-basin support can make recovery misleading; the
+one-basin special case produces a constant reference-label vector against which
+a one-cluster solution scores ARI = 1.0 trivially. Such conditions occur only in `short` mode at small
 budgets -- 100% of Müller-Brown conditions at n = 250, declining to zero by
 n = 4000, and 35% of Prinz conditions at n = 250, zero by n = 1000 -- and in
 **no** `subsample` condition on either system. All 38 rows scoring ARI > 0.999
@@ -502,20 +537,20 @@ quality with the selection step removed -- as a function of both:
 | 8000 | 0.77 | 0.69 | 0.59 | 0.44 | 0.29 |
 | 16000 | 0.87 | 0.80 | 0.70 | 0.57 | 0.54 |
 
-Both predictions of the warm-up account are confirmed directly. At any fixed
-budget, recovery decreases monotonically as lag increases, consistent with
-fewer usable lagged pairs (n_frames - lag) producing a less stable time-lagged
-covariance estimate. The budget at which recovery reaches a given level shifts
-with lag exactly as the mechanism predicts: 0.35 oracle-k ARI is reached by
-n = 1000 at lag = 5, requires roughly n = 8000 at lag = 50, and is not reached
-even at n = 16000 at lag = 100. TICA is therefore subject to two opposing
-budget effects -- an estimator that requires enough lagged pairs to stabilise,
-with the requirement scaling with the lag itself, and a selection step that
-degrades with data once the estimator has stabilised (visible in the
+Recovery generally decreases as lag increases at fixed budget, with small
+non-monotone reversals at low recovery. Lag changes the dynamical covariance
+target as well as reducing the number of usable pairs from n_frames to
+n_frames - lag; because that pair-count reduction is modest at the largest
+budgets, pair count alone cannot explain the effect. A 0.35 oracle-k ARI is
+reached by n = 1000 at lag = 5, around n = 8000 at lag = 50, and only at
+n = 16000 at lag = 100. The ablation establishes lag sensitivity and a
+lag-dependent data requirement, but not a single causal mechanism. The
+observed curve is consistent with two opposing budget effects -- lag-dependent
+projection recovery and a selection step that degrades with data after
+recovery becomes high (visible in the
 corresponding selected-k table, where recovery at lag = 5 peaks at n = 8000,
 0.56, and declines to 0.45 by n = 16000, reproducing the main peak-then-decline
-pattern within a single fixed lag setting) -- and the observed curve on any
-given system is their sum. Where the crossover falls depends on how quickly
+pattern within a single fixed lag setting). Where the crossover falls depends on how quickly
 TICA stabilises on that landscape's combination of lag and dynamics: near
 n = 1000 on Müller-Brown at the default lag, near n = 8000 on Prinz. PCA and
 VAE have no comparable warm-up requirement, consistent with their declining
@@ -576,35 +611,35 @@ is (compare their oracle-k column, which ranges from 0.42 to 0.90). Their
 selected-k recovery is dominated by the state-count selection failure, not by
 projection quality.
 
-**TICA's decline tracks how much budget remains after its warm-up, not the
-system.** TICA requires a minimum number of usable lagged pairs to produce a
+**TICA's decline is associated with how much budget remains after its
+high-recovery crossover.** TICA requires enough data at the chosen lag to produce a
 stable projection at all; at small budgets on every system it starts near zero
 (Müller-Brown: 0.09 at n=250; Prinz: 0.00 at n=250-500; alanine: 0.00 at
-n=100). The right diagnostic for when warm-up has finished is the oracle-k
+n=100). The diagnostic used here for entry into high recovery is the oracle-k
 column, which measures projection quality with the selection step removed.
-Reading warm-up off that column, the size of the subsequent decline is a
-simple function of how many budget doublings the sweep has left once warm-up
-completes:
+We define entry into the high-recovery regime *a priori* as mean oracle-k ARI
+at least 0.80. With that transparent threshold, the subsequent decline is
+associated with how many budget doublings remain:
 
-| system | warm-up completes at | doublings remaining in sweep | decline |
+| system | first oracle-k ARI >= 0.80 | doublings remaining in sweep | decline |
 |---|---|---|---|
-| Prinz | not before n=32,000 (end of range) | 0 | 12% |
+| Prinz | n=32,000 (end of range) | 0 | 12% |
 | Alanine dipeptide | n=16,000 | 2 | 37% |
-| Müller-Brown | n≈1,000-4,000 | 3-5 | 53% |
+| Müller-Brown | n=1,000 | 5 | 53% |
 
-Prinz spends its entire range warming up and barely declines; Müller-Brown
-finishes early and declines as sharply as PCA and VAE on the same system;
-alanine dipeptide falls between them because its warm-up ends two doublings
-before the sweep does. This is two mechanisms operating on one curve rather
+Prinz spends its entire range approaching high recovery and barely declines;
+Müller-Brown crosses early and declines as sharply as PCA and VAE on the same
+system; alanine dipeptide falls between them because its threshold occurs two doublings
+before the sweep does. Across only three systems this is an association, not a
+validated law. It is consistent with two mechanisms operating on one curve rather
 than one: an estimator-stability effect that dominates at small budgets, and a
 selection-driven degradation that dominates once the estimator has stabilized,
 exactly as characterized via the oracle-k contrast in Section 6.
 
-**Why alanine's warm-up completes so late, and a caution it implies.** That
-alanine warms up at n=16,000 is at first surprising, since its reference
-trajectory is the longest in the paper. The explanation is a direct
-consequence of the lag mechanism established in Section 6, and it is specific
-to the `subsample` condition. TICA's lag is specified in frames of the data it
+**Why alanine enters the high-recovery regime late, and a caution it implies.**
+That alanine crosses the 0.80 threshold at n=16,000 is at first surprising,
+since its reference trajectory is the longest in the paper. The association
+with effective lag is specific to the `subsample` condition. TICA's lag is specified in frames of the data it
 is handed, but uniform thinning to a budget of n frames from a 100,000-frame
 trajectory imposes a stride of 100,000/n, so a nominal lag of 10 frames
 corresponds to an *effective* physical lag of 10 x 100,000/n picoseconds. The
@@ -617,11 +652,11 @@ quality tracks it closely:
 | oracle-k ARI | 0.02 | 0.26 | 0.25 | 0.93 | 0.96 |
 
 Oracle-k recovery is flat at roughly 0.25 across six consecutive budgets and
-then rises nearly fourfold between n=8,000 and n=16,000 -- precisely where the
-effective lag crosses below about 100 ps, the timescale of the backbone
-dihedral transitions that separate these basins. Above that lag the
-time-lagged covariance is estimated between frames that are already
-decorrelated, and TICA has no slow direction left to find. The same figures in
+then rises nearly fourfold between n=8,000 and n=16,000 -- near where the
+effective lag crosses below about 100 ps. This is an empirical crossover in
+the present sweep, not an independently fitted dihedral transition timescale.
+Changing effective lag changes the time-lagged covariance target; the present
+data do not identify one unique causal explanation. The same figures in
 `short` mode, where the stride is always 1 and the effective lag is fixed at
 10 ps, show no such discontinuity: oracle-k rises smoothly from 0.15 to 0.96.
 Figure 7 plots both modes against budget and against effective lag; the
@@ -631,22 +666,23 @@ The practical caution follows directly, and it is not one we set out to test:
 thinning a trajectory before applying TICA rescales the lag along with the
 data. An analyst who subsamples aggressively and keeps the lag parameter fixed
 is silently lengthening the effective lag, and can push a well-sampled
-trajectory back into the warm-up regime. This is an independent confirmation
-of the lag ablation of Section 6 on real molecular dynamics, arrived at
-through the thinning stride rather than through the lag parameter itself.
+trajectory back into a low-recovery regime. This is a complementary
+lag-sensitivity observation on real molecular dynamics, arrived at through the
+thinning stride rather than through a direct parameter sweep.
 
-All nine method-system pairs decline from peak to the largest budget tested,
-and the size of the decline is explained by a specific, testable mechanism
-rather than left as an unexplained residual in a minority of cases. This
+All nine method-system pairs in the seed-0 summary decline from peak to the
+largest budget tested. For TICA, decline magnitude is associated with a
+specific, testable crossover account, subject to the cross-seed qualification
+below. This
 table, not a summary fraction, is the result that belongs in the paper.
 
 One qualification, established by the second alanine seed reported in
 Section 7 and not visible in this table. The decline column for TICA depends on
-where that system's warm-up happens to complete, and the completion budget is
-itself seed-dependent: on a second independent 100 ns trajectory TICA's warm-up
-finishes one doubling later, at n=32,000, and TICA consequently shows no
-decline at all within the tested range. The mechanism predicts this -- zero
-doublings remaining, as on Prinz -- but it means the TICA rows here should be
+where that system enters the high-recovery regime, and the crossover budget is
+itself seed-dependent: on a second independent 100 ns trajectory TICA crosses
+one doubling later, at n=32,000, and consequently shows no decline within the
+tested range. This is consistent with zero doublings remaining, as on Prinz,
+but it means the TICA rows here should be
 read as one draw from a seed-dependent quantity rather than as a fixed property
 of the system. The PCA and VAE rows replicate closely across seeds.
 
@@ -657,7 +693,7 @@ is exact and the observation model is fully controlled. This section reports
 the real-molecule replication and what is and is not comparable between the
 two settings.
 
-**Simulation.** A single 100 ns trajectory of alanine dipeptide (ACE-ALA-NME)
+**Simulation.** Two independent 100 ns trajectories of alanine dipeptide (ACE-ALA-NME)
 was run in implicit solvent (OpenMM [24], amber14 [25] with the GBn2 implicit
 solvent model [26], Langevin middle integrator [27], 2 fs timestep, 300 K, 1 ps
 save interval), producing 100,000 saved frames. A second trajectory was run
@@ -669,14 +705,17 @@ visited at the sampling budgets under study; 100 ns was chosen because it
 visits all three basins at every tested budget under coverage-matched
 subsampling, and at budgets of 8,000 frames and above under short trajectories
 (Table 8). Sampling budgets from 100 to 64,000 frames were drawn from
-this trajectory: `short` budgets as contiguous leading blocks, `subsample`
+each trajectory: `short` budgets as random contiguous windows, `subsample`
 budgets as uniform thinning, matching the two conditions used on the synthetic
-systems. Ground-truth basin membership was assigned from the backbone (phi,
-psi) dihedral angles into the standard three-region partition (C7eq, alpha_R,
-alpha_L/C7ax), a chemical definition independent of any method under audit.
+systems. Reference-region membership was assigned from backbone (phi, psi)
+dihedrals using a fixed three-region partition (C7eq, alpha_R,
+alpha_L/C7ax), independent of any method under audit. These labels are a
+structural reference, not proof that the regions are kinetically metastable.
 Figure 8 shows, for the seed-1 trajectory, that partition and the resulting
 basin populations: occupancy is strongly uneven, at 0.639, 0.308 and 0.053,
-and it is the 5.3% basin that makes the sampling budget bite. At n = 100 frames
+and it is the 5.3% basin that makes the sampling budget bite. These exact
+occupancies are seed-1-specific and are not asserted to represent seed 0; the
+cross-seed statement is limited to whether all three regions are visited. At n = 100 frames
 a basin that rare is expected to contribute about five frames, which is why the
 5 ns pilot reached it inconsistently and why coverage matching matters so much
 on this system.
@@ -693,8 +732,8 @@ Under coverage-matched subsampling, all three basins are visited at every
 budget tested, from n=100 upward, since subsampling draws uniformly from the
 full 100,000-frame reference trajectory rather than from a contiguous block.
 
-**Replication of the main effect.** BIC-selected state count increases with
-sampling budget on all three methods, in both modes (Spearman rho = 0.90-0.97,
+**Replication of the main effect.** BIC-selected component count increases with
+sampling budget on all three methods, in both modes (Spearman rho = 0.87-0.97,
 8 seeds per correlation -- fewer than the 20 seeds used on the synthetic
 systems, per the limitation discussed in Section 9). PCA rises from a mean of
 3.1 states at n=100 to 14.5 at n=64,000, against a true count of 3. TICA and
@@ -733,10 +772,10 @@ vary.
 | PCA relative decline, subsample | 73% | 73% |
 | VAE relative decline, subsample | 66% | 63% |
 | TICA relative decline, subsample | 27% | 0% |
-| PCA oracle-k at n=32,000 | 0.507 | 0.546 |
-| TICA oracle-k at n=32,000 | 0.947 | 0.903 |
-| VAE oracle-k at n=32,000 | 0.466 | 0.524 |
-| TICA warm-up completes at | n=16,000 | n=32,000 |
+| PCA oracle-k at n=32,000, subsample | 0.473 | 0.537 |
+| TICA oracle-k at n=32,000, subsample | 0.969 | 0.963 |
+| VAE oracle-k at n=32,000, subsample | 0.385 | 0.481 |
+| first TICA oracle-k ARI >= 0.80 | n=16,000 | n=32,000 |
 
 The central claim replicates closely. No budget-inflation correlation moves by
 more than 0.02 between seeds, the method ranking is unchanged with TICA's
@@ -747,10 +786,10 @@ at every budget under subsampling).
 One quantity does not replicate, and it is worth stating plainly rather than
 averaging away: **TICA shows no decline at all on seed 1 within the tested
 range.** Its recovery rises monotonically to the largest budget, where seed 0
-had peaked at n=16,000 and fallen 27% by n=32,000. This is not a contradiction
-of the mechanism but a consequence of it. Section 6.3 argues that TICA's
-decline is set by how many budget doublings remain after its warm-up completes;
-on seed 1 the warm-up completes one doubling later, at n=32,000 rather than
+had peaked at n=16,000 and fallen 27% by n=32,000. This is consistent with the
+crossover account in Section 6.3: fewer budget doublings remain after entry
+into the high-recovery regime. On seed 1 that threshold occurs one doubling
+later, at n=32,000 rather than
 n=16,000, leaving zero doublings in which selection-driven degradation could
 act. The oracle-k column shows the shift directly: at n=16,000 seed 0 has
 already reached 0.93 while seed 1 is only midway at 0.52, and both arrive at
@@ -759,10 +798,10 @@ as Prinz -- warm-up consuming the entire sweep, zero doublings remaining, no
 decline observed -- reached on a different system.
 
 What this costs the paper is precision about *where* TICA's crossover falls,
-not the existence of the effect: the crossover budget is itself
-seed-dependent, so a single seed cannot pin it down. What it buys is a
-prediction confirmed out of sample, since the doublings-remaining account was
-formulated on seed 0 and correctly anticipates a null result on seed 1.
+not the BIC component-count trend: the recovery crossover is seed-dependent,
+so a single seed cannot pin it down. The second seed is consistent with the
+proposed crossover account, but two physical replicates are insufficient to
+claim that the association has been prospectively confirmed.
 
 ## 8. Recommendations
 
@@ -772,7 +811,7 @@ formulated on seed 0 and correctly anticipates a null result on seed 1.
 
 2. **Do not report a state count from a single budget as a stable property of
    the system.** Where feasible, report how the count changes with budget
-   (as in Table 5), or explicitly justify why the budget used is
+   (as in the complete method-system table), or explicitly justify why the budget used is
    believed to be past the point where this matters -- which, per point 3,
    requires checking rather than assuming.
 
@@ -783,22 +822,21 @@ formulated on seed 0 and correctly anticipates a null result on seed 1.
    plausible-range check (does k = 3 versus k = 8 tell qualitatively different
    biological stories?) serves a similar function.
 
-4. **Prefer ICL over BIC or AIC for this purpose, with the caveat that ICL is
-   not thereby accurate, only less prone to runaway inflation.** ICL never
+4. **Use ICL as a sensitivity analysis when fitting mixtures, not as a default
+   answer.** In this grid ICL was less prone to ceiling saturation: it never
    reached the search ceiling in any of the twelve (system x mode x method)
    conditions tested here, where BIC did so in up to 44% of conditions and
    AIC in up to 84%. ICL's own reported count should still be treated as an
-   estimate to sanity-check, not a final answer.
+   estimate to sanity-check, not a final answer or a kinetically validated state count.
 
-5. **Where TICA is used, check for evidence of a warm-up regime before
+5. **Where TICA is used, check for evidence of a low-recovery regime before
    trusting its output at a given budget.** TICA's failure mode at small
    budgets (near-zero recovery, not merely inaccurate recovery) is distinct
    from PCA's and VAE's and is not fixed by any of the five selection criteria
-   tested; it requires enough usable lagged pairs (sampling budget minus lag)
-   at the chosen lag to produce a stable estimate. This is not only a plausible
-   diagnostic but a measured one: the lag ablation in Section 6 shows recovery
-   at fixed budget falling monotonically as lag increases, and the budget
-   needed to reach any given recovery level rising correspondingly with lag.
+   tested. It depends on budget, lag, the number of usable pairs, and the
+   dynamical covariance targeted by that lag. The lag ablation in Section 6
+   shows generally lower recovery and a later crossover as lag increases, with
+   small reversals that rule out a strict monotonic claim.
    A practical check even without ground truth is whether the projection
    changes substantially under a moderate change in lag; if it does, the
    estimate at the current lag and budget should not yet be trusted.
@@ -807,7 +845,7 @@ formulated on seed 0 and correctly anticipates a null result on seed 1.
 
 Ordered by how much they constrain the paper's claims, most binding first.
 
-**TICA's warm-up completion budget is seed-dependent, so the size of its
+**TICA's high-recovery crossover budget is seed-dependent, so the size of its
 decline is not a fixed property of a system.** The two 100 ns alanine seeds
 place that crossover one budget doubling apart, which is the difference between
 a 27% decline and none at all within the tested range (Section 7). The
@@ -842,6 +880,13 @@ without establishing why these particular criteria are so insensitive to this
 particular kind of data. This is noted as an open question rather than
 resolved.
 
+**The study counts geometric mixture components rather than validating kinetic
+metastability.** No transition matrix, implied-timescale plateau,
+Chapman-Kolmogorov test, or PCCA-type coarse graining is applied. Consequently,
+the main result is about apparent-basin counts from a projection-plus-GMM
+pipeline. The synthetic reference basins support recovery calculations;
+alanine's dihedral partition is only an independent structural reference.
+
 **All three systems tested have a small number of well-separated basins (3-4).**
 Whether the effect's magnitude changes for landscapes with many close or
 overlapping metastable states is untested and is a natural extension.
@@ -851,6 +896,12 @@ result should not be extrapolated to slower-folding or larger proteins without
 further validation; the paper's claims about real systems are scoped to this
 system and are not evidence about protein folding timescales generally.
 
+**The alanine production protocol has no separate post-minimization
+equilibration stage.** Production begins after energy minimization and velocity
+assignment. Random contiguous windows reduce dependence on the trajectory
+origin, but a future archive should include an explicit equilibration protocol
+and a sensitivity analysis that discards early production time.
+
 **Two selection-criterion claims rest on limited excursions.** ICL's zero
 ceiling-hit rate is a strong result but was tested only up to a search ceiling
 of kmax = 15; whether ICL would eventually saturate at a still-larger budget is
@@ -858,11 +909,11 @@ not established. Separately, ICL's own accuracy (as opposed to its resistance
 to runaway inflation) has not been separately validated against an
 independent ground truth beyond the ARI figures already reported.
 
-**TICA's lag parameter was varied on one system only.** The warm-up mechanism
-proposed in Section 6 is now directly tested via a lag/lagged-pair ablation
-(300 conditions, 10 seeds) rather than only inferred from the oracle-k
-contrast, and the ablation confirms both qualitative predictions of the
-mechanism. The lag parameter itself was swept on the Prinz potential only.
+**TICA's lag parameter was varied on one system only.** The crossover account
+proposed in Section 6 is tested via a lag ablation (300 conditions, 10 seeds)
+rather than only inferred from the oracle-k contrast. The ablation supports lag
+sensitivity and a lag-dependent data requirement without isolating pair count
+as the cause. The lag parameter itself was swept on the Prinz potential only.
 Section 6.3 supplies a second, independent test on alanine dipeptide by
 varying the effective lag through the subsampling stride rather than through
 the parameter, and the crossover falls where the mechanism predicts; a direct
@@ -1005,3 +1056,8 @@ constraints. *The Journal of Physical Chemistry A*, 123(28):6056-6079, 2019.
 Swails, C. X. Hernández, C. R. Schwantes, L.-P. Wang, T. J. Lane, and V. S.
 Pande. MDTraj: A modern open library for the analysis of molecular dynamics
 trajectories. *Biophysical Journal*, 109(8):1528-1532, 2015.
+
+[29] X. Wu, Z. Zhang, D. Shao, X. Liu, J. Xing, H. Fu, W. Cai, and X. Shao. A
+tutorial on dimensionality reduction and clustering for molecular dynamics
+trajectories: From linear algorithms to deep learning. *The Journal of Physical
+Chemistry B*, 130(30):7499-7511, 2026.

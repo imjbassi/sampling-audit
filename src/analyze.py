@@ -23,6 +23,15 @@ import pandas as pd
 from scipy import stats
 
 
+def _spearman_arrays(x, y):
+    """Spearman rho without warnings for constant inputs."""
+    x = np.asarray(x, dtype=float)
+    y = np.asarray(y, dtype=float)
+    if x.size < 2 or np.unique(x).size < 2 or np.unique(y).size < 2:
+        return np.nan
+    return float(np.corrcoef(stats.rankdata(x), stats.rankdata(y))[0, 1])
+
+
 def bootstrap_ci(values, n_boot=10000, alpha=0.05, seed=0, stat=np.mean):
     v = np.asarray([x for x in values if x == x], dtype=float)
     if len(v) == 0:
@@ -68,20 +77,25 @@ def budget_trend(df, value_col, group_cols=("mode", "method")):
         g = g.dropna(subset=[value_col, "n_frames"])
         if len(g) < 6 or g["n_frames"].nunique() < 3:
             continue
-        rho, p = stats.spearmanr(np.log(g["n_frames"]), g[value_col])
+        spearman = stats.spearmanr(np.log(g["n_frames"]), g[value_col])
+        rho, p = spearman.statistic, spearman.pvalue
 
         # bootstrap the correlation over seeds so the CI respects the
         # replicate structure rather than treating every row as independent
         seeds = g["seed"].unique()
+        arrays = {
+            s: (np.log(x["n_frames"].to_numpy(dtype=float)),
+                x[value_col].to_numpy(dtype=float))
+            for s, x in g.groupby("seed")
+        }
         rng = np.random.default_rng(0)
         boots = []
         for _ in range(2000):
             pick = rng.choice(seeds, size=len(seeds), replace=True)
-            sub = pd.concat([g[g.seed == s] for s in pick])
-            if sub["n_frames"].nunique() < 3:
-                continue
-            r, _ = stats.spearmanr(np.log(sub["n_frames"]), sub[value_col])
-            if r == r:
+            bx = np.concatenate([arrays[s][0] for s in pick])
+            by = np.concatenate([arrays[s][1] for s in pick])
+            r = _spearman_arrays(bx, by)
+            if np.isfinite(r):
                 boots.append(r)
 
         rec = dict(zip(group_cols, keys))
@@ -114,6 +128,74 @@ def coverage_control(df, value_col="k_bic"):
                         values=["spearman_rho", "rho_ci_lo", "rho_ci_hi"])
     piv.columns = ["_".join(c) for c in piv.columns]
     return piv.reset_index()
+
+
+def paired_mode_difference(df, value_col="k_bic",
+                           group_cols=("method",), n_boot=10000, seed=0):
+    """Paired seed bootstrap of rho(subsample) - rho(short).
+
+    Each bootstrap draw resamples seeds once and uses the same draw for both
+    modes. This preserves the pairing created by running both sampling modes
+    with the same simulation seeds. Overlap between two marginal confidence
+    intervals is not a test of their difference.
+    """
+    required = {"seed", "mode", "n_frames", value_col, *group_cols}
+    missing = required.difference(df.columns)
+    if missing:
+        raise ValueError(f"missing required columns: {sorted(missing)}")
+    rows = []
+    for keys, g in df.groupby(list(group_cols)):
+        if not isinstance(keys, tuple):
+            keys = (keys,)
+        if not {"short", "subsample"}.issubset(set(g["mode"].dropna())):
+            continue
+        seeds = np.intersect1d(
+            g.loc[g["mode"] == "short", "seed"].unique(),
+            g.loc[g["mode"] == "subsample", "seed"].unique(),
+        )
+        if len(seeds) < 2:
+            continue
+
+        arrays = {}
+        for s in seeds:
+            for mode in ("short", "subsample"):
+                x = g[(g["seed"] == s) & (g["mode"] == mode)].dropna(
+                    subset=["n_frames", value_col]
+                )
+                arrays[(s, mode)] = (
+                    np.log(x["n_frames"].to_numpy(dtype=float)),
+                    x[value_col].to_numpy(dtype=float),
+                )
+
+        def rho_for_picks(picks, mode):
+            xa = np.concatenate([arrays[(s, mode)][0] for s in picks])
+            ya = np.concatenate([arrays[(s, mode)][1] for s in picks])
+            if np.unique(xa).size < 3:
+                return np.nan
+            # Avoid pandas slicing in the bootstrap's inner loop. This is
+            # exactly Spearman's rho: Pearson correlation of midranks.
+            return _spearman_arrays(xa, ya)
+
+        observed = rho_for_picks(seeds, "subsample") - rho_for_picks(
+            seeds, "short"
+        )
+        rng = np.random.default_rng(seed)
+        boots = []
+        for _ in range(n_boot):
+            picks = rng.choice(seeds, size=len(seeds), replace=True)
+            delta = rho_for_picks(picks, "subsample") - rho_for_picks(picks, "short")
+            if np.isfinite(delta):
+                boots.append(delta)
+        rec = dict(zip(group_cols, keys))
+        rec.update({
+            "metric": value_col,
+            "delta_rho": float(observed),
+            "delta_ci_lo": float(np.percentile(boots, 2.5)),
+            "delta_ci_hi": float(np.percentile(boots, 97.5)),
+            "n_seeds": int(len(seeds)),
+        })
+        rows.append(rec)
+    return pd.DataFrame(rows)
 
 
 def ceiling_report(df, kmax=15):

@@ -2,7 +2,7 @@
 
 Every bracket replacement is printed so it can be audited -- the manuscript is
 full of bracketed confidence intervals like [+0.85, +0.91], which must NOT be
-touched. Only brackets whose contents are bare integers in 1..28 are citations.
+touched. Only brackets whose contents are bare integers in 1..29 are citations.
 """
 import io, re, sys, json
 
@@ -16,7 +16,7 @@ body, refs = src.split("## 10. References")
 all_br = set(re.findall(r"\[([^\]\[]{1,40})\]", body))
 cite_br = {b for b in all_br
            if re.fullmatch(r"[\d,\s]+", b) and
-           all(1 <= int(x) <= 28 for x in b.split(",") if x.strip())}
+           all(1 <= int(x) <= 29 for x in b.split(",") if x.strip())}
 print(f"distinct bracket contents: {len(all_br)}")
 print(f"  treated as citations   : {len(cite_br)}")
 skipped = sorted(all_br - cite_br)
@@ -33,7 +33,7 @@ def repl(m):
     if not re.fullmatch(r"[\d,\s]+", inner):
         return m.group(0)
     nums = [x.strip() for x in inner.split(",") if x.strip()]
-    if not all(x.isdigit() and 1 <= int(x) <= 28 for x in nums):
+    if not all(x.isdigit() and 1 <= int(x) <= 29 for x in nums):
         return m.group(0)
     n += 1
     return "\\cite{" + ",".join(keys[x] for x in nums) + "}"
@@ -59,7 +59,6 @@ TABSITES = [
     ("understated (Table 4):", "tab:ceiling"),
     ("endpoint comparison in Table 3,", "tab:oraclegap"),
     ("(Table 8). Sampling budgets", "tab:basins"),
-    ("(as in Table 5),", "tab:ninepairs"),
 ]
 
 f = t = 0
@@ -85,9 +84,10 @@ for ctx, label in TABSITES:
 # markdown, where the table sits immediately below, but LaTeX floats move, so
 # each needs an explicit reference.
 TABINTRO = [
-    ("are statistically indistinguishable in every cell:", "tab:coverage"),
+    ("are closely similar in magnitude:", "tab:coverage"),
+    ("The independent-sample result is:", "tab:iid"),
     ("quality with the selection step removed -- as a function of both:", "tab:lagablation"),
-    ("simple function of how many budget doublings the sweep has left once warm-up\ncompletes:", "tab:warmup"),
+    ("associated with how many budget doublings remain:", "tab:warmup"),
     ("quality tracks it closely:", "tab:efflag"),
     ("randomness that the eight sweep seeds\nvary.", "tab:crossseed"),
 ]

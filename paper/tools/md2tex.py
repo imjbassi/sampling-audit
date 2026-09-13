@@ -30,36 +30,43 @@ TABLE_META = [
      "same count at every budget, leaving the correlation undefined."),
     ("tab:coverage", "The coverage-matched control. BIC budget correlations "
      "under genuinely short trajectories and under uniform thinning of one long "
-     "reference trajectory. Intervals overlap in all six comparisons, so holding "
-     "landscape coverage fixed does not remove the effect."),
+     "reference trajectory. The paired column is subsample minus short rho, "
+     "bootstrapped over matched seeds. All absolute differences are at most "
+     "0.022, although two TICA intervals exclude zero."),
+    ("tab:iid", "Independent-equilibrium control in the exact latent "
+     "coordinates (10 seeds). Samples are drawn independently from a gridded "
+     "Boltzmann distribution, removing trajectory autocorrelation and "
+     "dimensionality reduction. BIC component counts still rise with budget."),
     ("tab:lagablation", "TICA lag ablation on the Prinz potential: oracle-$k$ "
      "recovery as a function of sampling budget and lag (10 seeds, subsample "
-     "mode, 300 conditions). Recovery falls monotonically as lag grows at fixed "
-     "budget, and the budget needed to reach any given level rises with lag."),
+     "mode, 300 conditions). Recovery generally falls as lag grows, with small "
+     "low-recovery reversals; the budget needed to reach a given level rises."),
     ("tab:oraclegap", "Recovery at the criterion-selected state count against "
      "recovery given the true state count, at $n = 32{,}000$ in \\texttt{short} "
      "mode. The gap localises how much of the error belongs to the selection "
      "step rather than to the projection."),
-    ("tab:ninepairs", "All nine method--system pairs. Every pair declines from "
-     "its peak to the largest budget tested; the size of the decline tracks how "
-     "much budget remains after TICA's warm-up completes, and is otherwise "
-     "uniformly large for PCA and VAE."),
-    ("tab:warmup", "Why TICA's decline varies by system. Warm-up completion is "
-     "read from the oracle-$k$ column; what remains of the sweep after it "
-     "determines how much ordinary selection-driven degradation can occur."),
+    ("tab:ninepairs", "Seed-0 summary of all nine method--system pairs. Every "
+     "pair declines from its peak to the largest budget tested. PCA and VAE "
+     "declines are uniformly large; the TICA association is qualified by the "
+     "independent seed comparison."),
+    ("tab:warmup", "Descriptive TICA crossover comparison. Entry into a "
+     "high-recovery regime is defined as mean oracle-$k$ ARI at least 0.80. "
+     "Across three systems, later entry is associated with less subsequent "
+     "decline; this is not a validated law."),
     ("tab:efflag", "TICA under coverage-matched subsampling on alanine "
      "dipeptide. Thinning to $n$ frames from a 100,000-frame reference imposes a "
      "stride of $100{,}000/n$, so the effective physical lag shrinks as the "
-     "budget grows. Projection quality tracks the effective lag, not the budget."),
+     "budget grows. Projection quality is associated with the effective lag in "
+     "this subsample sweep."),
     ("tab:basins", "Mean number of the three ground-truth basins visited by "
-     "contiguous leading blocks of the 100~ns trajectory. Under coverage-matched "
+     "random contiguous windows of the 100~ns trajectory. Under coverage-matched "
      "subsampling all three are visited at every budget."),
     ("tab:crossseed", "Two independent 100~ns alanine dipeptide seeds, compared "
      "over the budgets they share. Budget inflation, the method ranking and "
      "basin coverage all replicate. TICA's relative decline does not: its "
-     "warm-up completes one budget doubling later on seed 1, leaving no room "
-     "for selection-driven degradation within the tested range, exactly as the "
-     "doublings-remaining account predicts."),
+     "high-recovery crossover occurs one budget doubling later on seed 1, "
+     "leaving no room for a decline within the tested range. This is consistent "
+     "with, but does not by itself validate, the crossover account."),
 ]
 
 # ---------------------------------------------------------------- figure floats
@@ -83,11 +90,11 @@ FIGS = [
      "Counts rise monotonically while the landscape is unchanged."),
     ("after_table", 2, "fig:criteria", "figures/fig4_criteria.pdf",
      "\\textwidth", "figure*",
-     "The same trend under all five selection criteria. BIC inflates "
-     "monotonically; AIC is saturated at every budget rather than trending; ICL "
-     "alone stays in an interpretable range; silhouette and elbow gap are "
-     "insensitive to budget and to landscape alike."),
-    ("after_table", 5, "fig:recovery", "figures/fig5_recovery.pdf",
+     "Criterion-dependent behavior on identical embeddings. BIC inflates "
+     "monotonically; AIC is frequently ceiling-censored and non-monotone; ICL "
+     "stays within the tested range; silhouette and the simple elbow diagnostic "
+     "are largely insensitive."),
+    ("after_table", 6, "fig:recovery", "figures/fig5_recovery.pdf",
      "\\textwidth", "figure*",
      "Recovery at the selected state count against recovery given the true state "
      "count. Selected-$k$ recovery peaks at an intermediate budget and then "
@@ -101,19 +108,20 @@ FIGS = [
      "rather than in what the trajectory visited."),
     ("anchor", "ref{fig:rama} shows", "fig:rama",
      "figures_alanine/fig1_alanine_rama.pdf", "\\textwidth", "figure*",
-     "Alanine dipeptide ground truth, from the seed-1 trajectory: (a) "
+     "Alanine dipeptide structural reference, from the seed-1 trajectory: (a) "
      "Ramachandran density, (b) the standard three-region partition that "
      "supplies the basin labels, (c) basin occupancy. The partition is a "
      "chemical definition and is independent of every method under audit. The "
-     "rarest basin holds 5.3\\% of frames, which is why sampling budget bites "
-     "hardest on this system."),
-    ("after_table", 8, "fig:efflag", "figures_alanine/fig7_tica_effective_lag.pdf",
+     "rarest basin holds 5.3\\% of seed-1 frames. These occupancies are not "
+     "asserted to represent seed 0."),
+    ("after_table", 9, "fig:efflag", "figures_alanine/fig7_tica_effective_lag.pdf",
      "\\textwidth", "figure*",
-     "Thinning a trajectory rescales TICA's lag. (a) Warm-up against sampling "
+     "Thinning a trajectory rescales TICA's lag. (a) Recovery against sampling "
      "budget for both modes. (b) The same points against the effective lag "
      "$\\tau_{\\mathrm{eff}} = L\\,(N/n)\\,\\Delta t$: every subsample point "
-     "above the dihedral transition timescale sits near 0.25 and everything "
-     "below it jumps to roughly 0.95, so lag alone accounts for that curve. The "
+     "above the empirical 100~ps crossover sits near 0.25 and points below it "
+     "jump to roughly 0.95. This association is descriptive, not a fitted "
+     "transition timescale. The "
      "\\texttt{short} points sit at a fixed 10~ps and still span 0.15 to 0.96, "
      "so their spread is sample size alone."),
 ]

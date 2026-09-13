@@ -243,7 +243,7 @@ def fig5_recovery(df, outdir="figures", criterion="bic",
 
     # drop budgets that lost all replicates, so no point is drawn from an
     # empty or near-empty sample
-    keep = df.groupby(["mode", "n_frames"])["seed"].transform("count") >= 3
+    keep = df.groupby(["mode", "method", "n_frames"])["seed"].transform("count") >= 3
     df = df[keep]
 
     modes = sorted(df["mode"].unique())

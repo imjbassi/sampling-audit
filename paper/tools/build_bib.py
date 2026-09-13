@@ -20,7 +20,7 @@ KEYS = {
     17: "biernacki2000", 18: "keribin2000", 19: "drton2017", 20: "rousseeuw1987",
     21: "hubert1985", 22: "vandermaaten2008", 23: "wattenberg2016",
     24: "eastman2017", 25: "maier2015", 26: "nguyen2013", 27: "zhang2019",
-    28: "mcgibbon2015",
+    28: "mcgibbon2015", 29: "wu2026",
 }
 
 # Not in Crossref; each verified against the publisher/author page directly.

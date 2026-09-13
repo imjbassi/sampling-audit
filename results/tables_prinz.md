@@ -5,38 +5,38 @@ Conditions: 960  |  seeds: 20  |  budgets: [np.int64(250), np.int64(500), np.int
 
 ## Table 1 — Budget trend in reported state count
 
-| criterion   | mode      | method   | rho [95% CI]         |     p_value |   n_seeds |   n_obs |
-|:------------|:----------|:---------|:---------------------|------------:|----------:|--------:|
-| bic         | short     | pca      | +0.95 [+0.93, +0.96] | 9.36579e-79 |        20 |     160 |
-| bic         | short     | tica     | +0.97 [+0.97, +0.98] | 1.66295e-99 |        20 |     160 |
-| bic         | short     | vae      | +0.93 [+0.92, +0.94] | 1.41338e-70 |        20 |     160 |
-| bic         | subsample | pca      | +0.95 [+0.94, +0.96] | 1.35016e-81 |        20 |     160 |
-| bic         | subsample | tica     | +0.96 [+0.95, +0.97] | 1.57791e-86 |        20 |     160 |
-| bic         | subsample | vae      | +0.91 [+0.89, +0.93] | 1.3937e-61  |        20 |     160 |
-| aic         | short     | pca      | +0.67 [+0.58, +0.75] | 3.94695e-22 |        20 |     160 |
-| aic         | short     | tica     | +0.82 [+0.71, +0.90] | 8.40289e-41 |        20 |     160 |
-| aic         | short     | vae      | +0.77 [+0.69, +0.84] | 1.1805e-32  |        20 |     160 |
-| aic         | subsample | pca      | +0.66 [+0.58, +0.75] | 9.1961e-22  |        20 |     160 |
-| aic         | subsample | tica     | +0.85 [+0.75, +0.93] | 1.8957e-45  |        20 |     160 |
-| aic         | subsample | vae      | +0.74 [+0.68, +0.80] | 7.20788e-29 |        20 |     160 |
-| icl         | short     | pca      | +0.48 [+0.32, +0.62] | 8.86594e-11 |        20 |     160 |
-| icl         | short     | tica     | +0.91 [+0.89, +0.93] | 1.22429e-60 |        20 |     160 |
-| icl         | short     | vae      | +0.46 [+0.35, +0.56] | 9.95945e-10 |        20 |     160 |
-| icl         | subsample | pca      | +0.36 [+0.24, +0.48] | 3.1339e-06  |        20 |     160 |
-| icl         | subsample | tica     | +0.93 [+0.93, +0.94] | 2.35874e-72 |        20 |     160 |
-| icl         | subsample | vae      | +0.24 [+0.12, +0.38] | 0.00194746  |        20 |     160 |
-| silhouette  | short     | pca      | +0.65 [+0.57, +0.73] | 1.08317e-20 |        20 |     160 |
-| silhouette  | short     | tica     | +0.26 [+0.09, +0.42] | 0.000750365 |        20 |     160 |
-| silhouette  | short     | vae      | +0.41 [+0.28, +0.54] | 7.15016e-08 |        20 |     160 |
-| silhouette  | subsample | pca      | +0.12 [+0.12, +0.24] | 0.127027    |        20 |     160 |
-| silhouette  | subsample | tica     | -0.22 [-0.32, -0.11] | 0.00614132  |        20 |     160 |
-| silhouette  | subsample | vae      | +0.12 [-0.07, +0.30] | 0.129696    |        20 |     160 |
-| elbow_gap   | short     | pca      | -0.48 [-0.57, -0.38] | 1.24352e-10 |        20 |     160 |
-| elbow_gap   | short     | tica     | +0.28 [+0.16, +0.40] | 0.000398238 |        20 |     160 |
-| elbow_gap   | short     | vae      | -0.05 [-0.18, +0.05] | 0.514263    |        20 |     160 |
-| elbow_gap   | subsample | pca      | -0.12 [-0.24, -0.12] | 0.127027    |        20 |     160 |
-| elbow_gap   | subsample | tica     | +0.09 [-0.01, +0.21] | 0.2361      |        20 |     160 |
-| elbow_gap   | subsample | vae      | -0.13 [-0.25, -0.01] | 0.110396    |        20 |     160 |
+| criterion   | mode      | method   | rho [95% CI]         |   n_seeds |   n_obs |
+|:------------|:----------|:---------|:---------------------|----------:|--------:|
+| bic         | short     | pca      | +0.95 [+0.93, +0.96] |        20 |     160 |
+| bic         | short     | tica     | +0.97 [+0.97, +0.98] |        20 |     160 |
+| bic         | short     | vae      | +0.93 [+0.92, +0.94] |        20 |     160 |
+| bic         | subsample | pca      | +0.95 [+0.94, +0.96] |        20 |     160 |
+| bic         | subsample | tica     | +0.96 [+0.95, +0.97] |        20 |     160 |
+| bic         | subsample | vae      | +0.91 [+0.89, +0.93] |        20 |     160 |
+| aic         | short     | pca      | +0.67 [+0.58, +0.75] |        20 |     160 |
+| aic         | short     | tica     | +0.82 [+0.71, +0.90] |        20 |     160 |
+| aic         | short     | vae      | +0.77 [+0.69, +0.84] |        20 |     160 |
+| aic         | subsample | pca      | +0.66 [+0.58, +0.75] |        20 |     160 |
+| aic         | subsample | tica     | +0.85 [+0.75, +0.93] |        20 |     160 |
+| aic         | subsample | vae      | +0.74 [+0.68, +0.80] |        20 |     160 |
+| icl         | short     | pca      | +0.48 [+0.32, +0.62] |        20 |     160 |
+| icl         | short     | tica     | +0.91 [+0.89, +0.93] |        20 |     160 |
+| icl         | short     | vae      | +0.46 [+0.35, +0.56] |        20 |     160 |
+| icl         | subsample | pca      | +0.36 [+0.24, +0.48] |        20 |     160 |
+| icl         | subsample | tica     | +0.93 [+0.93, +0.94] |        20 |     160 |
+| icl         | subsample | vae      | +0.24 [+0.12, +0.38] |        20 |     160 |
+| silhouette  | short     | pca      | +0.65 [+0.57, +0.73] |        20 |     160 |
+| silhouette  | short     | tica     | +0.26 [+0.09, +0.42] |        20 |     160 |
+| silhouette  | short     | vae      | +0.41 [+0.28, +0.54] |        20 |     160 |
+| silhouette  | subsample | pca      | +0.12 [+0.12, +0.24] |        20 |     160 |
+| silhouette  | subsample | tica     | -0.22 [-0.32, -0.11] |        20 |     160 |
+| silhouette  | subsample | vae      | +0.12 [-0.07, +0.30] |        20 |     160 |
+| elbow_gap   | short     | pca      | -0.48 [-0.57, -0.38] |        20 |     160 |
+| elbow_gap   | short     | tica     | +0.28 [+0.16, +0.40] |        20 |     160 |
+| elbow_gap   | short     | vae      | -0.05 [-0.18, +0.05] |        20 |     160 |
+| elbow_gap   | subsample | pca      | -0.12 [-0.24, -0.12] |        20 |     160 |
+| elbow_gap   | subsample | tica     | +0.09 [-0.01, +0.21] |        20 |     160 |
+| elbow_gap   | subsample | vae      | -0.13 [-0.25, -0.01] |        20 |     160 |
 
 ## Table 2 — Reported k at budget endpoints (BIC)
 
@@ -96,3 +96,13 @@ A non-zero rate means reported k is right-censored at kmax and the inflation is 
 | elbow_gap   | subsample | pca      |        0       | 160 |
 | elbow_gap   | subsample | tica     |        0       | 160 |
 | elbow_gap   | subsample | vae      |        0       | 160 |
+
+## Table 5 — Paired coverage-mode contrast
+
+Delta is rho(subsample) minus rho(short), bootstrapped over matched seeds.
+
+| method   | metric   |   delta_rho |   delta_ci_lo |   delta_ci_hi |   n_seeds |
+|:---------|:---------|------------:|--------------:|--------------:|----------:|
+| pca      | k_bic    |  0.00446145 |    -0.0111476 |   0.0202222   |        20 |
+| tica     | k_bic    | -0.0138667  |    -0.0235144 |  -0.00477031  |        20 |
+| vae      | k_bic    | -0.0219983  |    -0.0462125 |   0.000317745 |        20 |

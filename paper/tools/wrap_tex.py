@@ -22,6 +22,12 @@ PRE = r"""% Generated from paper/manuscript.md -- edit the markdown, then re-run
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage[hidelinks]{hyperref}
+\hypersetup{
+  pdftitle={How Many Metastable States Did You Actually Find? Sampling Budget as a Confound},
+  pdfauthor={Jaiveer Bassi},
+  pdfsubject={Sampling-budget sensitivity of component counts in molecular-simulation embeddings},
+  pdfkeywords={molecular dynamics, dimensionality reduction, Gaussian mixtures, model selection, sampling budget}
+}
 
 % ORCID badge next to the author name. orcidlink draws the official mark and
 % hyperlinks it; the fallback keeps the paper compilable on a TeX installation
@@ -56,23 +62,48 @@ All result files underlying every number and figure in this paper are in the
 accompanying repository at \url{https://github.com/imjbassi/sampling-audit},
 under \texttt{results/}: \texttt{sweep.csv} and \texttt{sweep\_prinz.csv} (960
 conditions each), \texttt{alanine\_sweep\_100ns.csv} (480 conditions),
+\texttt{alanine\_sweep\_100ns\_seed1.csv} (432 conditions),
 \texttt{tica\_lag\_ablation.csv} (300 conditions) and
-\texttt{dim\_ablation.csv} (540 conditions). The superseded 5~ns alanine pilot
+\texttt{dim\_ablation.csv} (540 conditions), and
+\texttt{iid\_equilibrium\_control.csv} (160 conditions). The superseded 5~ns alanine pilot
 sweeps are retained in the same directory for provenance and are identified as
-such in \texttt{results/NOTE.md}. Raw trajectories are not distributed because
-they are large and exactly reproducible from the simulation script; the
-alanine dipeptide starting structure is included.
+such in \texttt{results/NOTE.md}. The alanine starting structure, complete
+simulation protocol, random-seed controls and derived result tables are
+included. The exact production trajectories are not currently archived in the
+repository; rerunning molecular dynamics reproduces the protocol but is not
+expected to be bitwise identical across hardware and software stacks. This is
+a remaining FAIR-data limitation and should be resolved with a versioned
+trajectory archive and DOI before journal submission.
 
 \section*{Code availability}
 
 All code is in the same repository under the MIT License. \texttt{run\_all.sh}
-reproduces the synthetic sweeps end to end; \texttt{src/alanine.py} runs the
+writes a fresh, non-resuming reproduction to a separate output directory and
+includes the synthetic sweeps and registered ablations; \texttt{src/alanine.py} runs the
 molecular dynamics and its sweep; \texttt{src/figures.py} and
 \texttt{src/figures\_alanine.py} regenerate every figure from the result CSVs.
 
 \section*{Competing interests}
 
 The author declares no competing interests.
+
+\section*{Funding}
+
+This research received no external funding.
+
+\section*{Author contributions}
+
+Jaiveer Bassi: conceptualization, methodology, software, formal analysis,
+investigation, visualization, writing---original draft, and writing---review
+and editing.
+
+\section*{Use of AI tools}
+
+OpenAI ChatGPT and Codex were used to assist with manuscript editing,
+consistency checking, software review, statistical cross-checking, and LaTeX
+build troubleshooting. The author independently reviewed and takes
+responsibility for the scientific reasoning, computations, references, and
+final text.
 
 \bibliographystyle{unsrt}
 \bibliography{refs}
