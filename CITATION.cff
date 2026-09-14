@@ -10,7 +10,7 @@ authors:
     email: jaiveerbassi@yahoo.com
     affiliation: Independent Researcher, USA
     orcid: https://orcid.org/0009-0006-3633-3220
-repository-code: https://github.com/imjbassi/sampling-audit
+repository-code: https://github.com/imjbassi/state-count-sampling-bias
 abstract: >-
   A controlled audit of whether the number of metastable states reported by
   PCA, TICA, and VAE projections of molecular simulation data is a property of

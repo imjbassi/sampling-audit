@@ -59,7 +59,8 @@ POST = r"""
 \section*{Data availability}
 
 All result files underlying every number and figure in this paper are in the
-accompanying repository at \url{https://github.com/imjbassi/sampling-audit},
+accompanying GitHub repository
+\href{https://github.com/imjbassi/state-count-sampling-bias}{\texttt{state-count-sampling-bias}},
 under \texttt{results/}: \texttt{sweep.csv} and \texttt{sweep\_prinz.csv} (960
 conditions each), \texttt{alanine\_sweep\_100ns.csv} (480 conditions),
 \texttt{alanine\_sweep\_100ns\_seed1.csv} (432 conditions),
