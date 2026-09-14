@@ -73,8 +73,8 @@ included. The exact production trajectories are not currently archived in the
 repository because each DCD is about 28.8~MB. Both exact 100~ns production
 trajectories, their matching 50,000,000-step logs, the topology, locked
 environments, result tables, analysis-source snapshot and SHA-256 manifest are
-preserved in the versioned Zenodo dataset at
-\url{https://doi.org/10.5281/zenodo.22754434}. An independent replay of all 480
+preserved in the versioned Zenodo dataset at the all-versions DOI
+\url{https://doi.org/10.5281/zenodo.22754433}. An independent replay of all 480
 seed-0 conditions matched every scientific result column exactly; only
 machine-runtime timing was excluded. Rerunning molecular dynamics reproduces
 the protocol but is not expected to produce bitwise-identical trajectories

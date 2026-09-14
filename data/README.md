@@ -17,8 +17,8 @@ recovered from the original analysis task's scratch space. Each DCD contains
 script reproduces the stated protocol but should not be described as bitwise
 reproduction of trajectories across different OpenMM, driver, or hardware
 stacks. Both exact trajectories, their production logs, the topology, package
-environment and SHA-256 manifest are preserved in Zenodo dataset version 1.0.0
-at https://doi.org/10.5281/zenodo.22754434.
+environment and SHA-256 manifest are preserved under the all-versions Zenodo
+DOI https://doi.org/10.5281/zenodo.22754433.
 
 The tracked `data/alanine/log_seed0.txt` and `log_seed1.txt` files are the
 complete 100 ns production logs, each ending at 50,000,000 integration steps.
