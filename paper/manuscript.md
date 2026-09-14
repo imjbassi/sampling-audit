@@ -694,11 +694,10 @@ the real-molecule replication and what is and is not comparable between the
 two settings.
 
 **Simulation.** Two independent 100 ns trajectories of alanine dipeptide (ACE-ALA-NME)
-was run in implicit solvent (OpenMM [24], amber14 [25] with the GBn2 implicit
+were run in implicit solvent (OpenMM [24], amber14 [25] with the GBn2 implicit
 solvent model [26], Langevin middle integrator [27], 2 fs timestep, 300 K, 1 ps
-save interval), producing 100,000 saved frames. A second trajectory was run
-identically from a different random seed; unless stated otherwise the results
-below are from the first, and the two are compared at the end of this section. Dihedrals
+save interval), each producing 100,000 saved frames. Unless stated otherwise,
+the results below are from seed 0; the two seeds are compared at the end of this section. Dihedrals
 and heavy-atom distances were computed with MDTraj [28]. An initial 5 ns pilot run was discarded after
 it showed the rarest of the three basins (alpha_L/C7ax) was not consistently
 visited at the sampling budgets under study; 100 ns was chosen because it
@@ -791,9 +790,9 @@ crossover account in Section 6.3: fewer budget doublings remain after entry
 into the high-recovery regime. On seed 1 that threshold occurs one doubling
 later, at n=32,000 rather than
 n=16,000, leaving zero doublings in which selection-driven degradation could
-act. The oracle-k column shows the shift directly: at n=16,000 seed 0 has
-already reached 0.93 while seed 1 is only midway at 0.52, and both arrive at
-0.96 by n=32,000. The seed-1 alanine case is therefore the same configuration
+act. The oracle-k column shows the shift directly: at n=16,000 the mean values
+are 0.930 for seed 0 and 0.517 for seed 1; at n=32,000 they are 0.969 and 0.963,
+respectively. The seed-1 alanine case is therefore the same configuration
 as Prinz -- warm-up consuming the entire sweep, zero doublings remaining, no
 decline observed -- reached on a different system.
 
