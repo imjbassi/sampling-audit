@@ -70,10 +70,15 @@ sweeps are retained in the same directory for provenance and are identified as
 such in \texttt{results/NOTE.md}. The alanine starting structure, complete
 simulation protocol, random-seed controls and derived result tables are
 included. The exact production trajectories are not currently archived in the
-repository; rerunning molecular dynamics reproduces the protocol but is not
-expected to be bitwise identical across hardware and software stacks. This is
-a remaining FAIR-data limitation and should be resolved with a versioned
-trajectory archive and DOI before journal submission.
+repository because each DCD is about 28.8~MB. Both exact 100~ns production
+trajectories, their matching 50,000,000-step logs, the topology, locked
+environments, result tables, analysis-source snapshot and SHA-256 manifest are
+preserved in the versioned Zenodo dataset at
+\url{https://doi.org/10.5281/zenodo.22754434}. An independent replay of all 480
+seed-0 conditions matched every scientific result column exactly; only
+machine-runtime timing was excluded. Rerunning molecular dynamics reproduces
+the protocol but is not expected to produce bitwise-identical trajectories
+across hardware and software stacks.
 
 \section*{Code availability}
 
