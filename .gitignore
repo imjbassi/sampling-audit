@@ -22,3 +22,10 @@ paper/*.bbl
 paper/*.blg
 paper/*.out
 paper/tools/_body.*
+
+# Submission-only working files can contain private contact or reviewer details.
+paper/cover_letter_jctc.tex
+paper/cover_letter_jctc.pdf
+paper/cover_letter_jctc_*.pdf
+output/
+tmp/

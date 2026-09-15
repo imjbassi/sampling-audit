@@ -1,30 +1,25 @@
-# How Many Metastable States Did You Actually Find?
-### Sampling Budget as a Confound in Dimensionality-Reduction Analyses of Molecular Simulation
+# Sampling Budget Biases Apparent Metastable-State Counts in Molecular Simulation
 
 ## Abstract
 
-A common claim in molecular simulation is that projecting a trajectory reveals
-N metastable states. Here N is operationally the number of Gaussian-mixture
-components selected in a low-dimensional embedding; without a kinetic model it
-should be read as an apparent-basin count, not a validated metastable-state
-count. Across two potentials with basin counts fixed by construction and two
-independent 100 ns alanine-dipeptide simulations, the BIC-selected component
-count rises strongly with sampling budget (Spearman rho = 0.87-0.97 across
-systems and methods) although the reference landscape is unchanged. The trend
-persists under uniform thinning of a common reference trajectory, where
-coverage is approximately matched, and under IID Boltzmann sampling in the
-exact synthetic latent coordinates, which removes time correlation and
-projection learning. Other criteria exhibit different failure
-modes: AIC is frequently ceiling-censored or non-monotone, ICL never reaches
-the tested ceiling but remains method-dependently inaccurate, and silhouette
-and the simple elbow diagnostic are largely insensitive. BIC-selected recovery
-often peaks at an intermediate budget and then declines even while recovery at
-the reference component count is flat or improves. One exception is explicit:
-alanine TICA seed 1 shows no decline within the tested range because its
-high-recovery crossover occurs at the last budget. We recommend reporting
-sampling-budget curves, treating mixture components as candidate states until
-kinetically validated, and using ICL only as a less-ceiling-prone sensitivity
-analysis rather than a general default.
+Claims that a molecular-simulation trajectory reveals N metastable states
+often operationalize N as the number of Gaussian-mixture components selected
+after dimensionality reduction, although without kinetic validation these are
+only apparent basins. Across two potentials with known basin counts and two
+independent 100 ns alanine-dipeptide simulations, BIC-selected counts increased
+strongly with sampling budget (Spearman rho = 0.87-0.97) despite an unchanged
+reference landscape; the trend persisted under uniform thinning and IID
+Boltzmann sampling, excluding incomplete exploration, time correlation, and
+projection learning as sufficient explanations. Alternative criteria failed
+differently: AIC was often ceiling-censored or non-monotone, ICL avoided the
+ceiling but remained method-dependently inaccurate, and silhouette and the
+elbow diagnostic were largely insensitive; BIC-selected recovery often peaked
+and then declined while recovery at the reference state count was flat or
+improved, except that alanine TICA seed 1 crossed the high-recovery threshold
+only at the final budget and showed no decline within range. We therefore
+recommend reporting sampling-budget curves, calling mixture components
+candidate states until kinetically validated, and using ICL only as a
+sensitivity analysis rather than a general default.
 
 ## 1. Introduction
 

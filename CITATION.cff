@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 title: >-
-  How Many Metastable States Did You Actually Find? Sampling Budget as a
-  Confound in Dimensionality-Reduction Analyses of Molecular Simulation
+  Sampling Budget Biases Apparent Metastable-State Counts in Molecular
+  Simulation
 message: If you use this software or its results, please cite it as below.
 type: software
 authors:
